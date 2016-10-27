@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{35A787DB-9921-43F5-AFEB-AE2698EADECC}</ProjectGuid>
+    <ProjectGuid>{EC0F7276-EC72-4DB4-AE4B-667D0B81B59E}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Lisp</RootNamespace>
