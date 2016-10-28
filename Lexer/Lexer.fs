@@ -2,18 +2,23 @@
 
 open System
 
-type Token = 
+type Token =
+    | Error 
     | Empty
     | Identifier
     | Number
-    | Error
+    | Operator
+    | Seperator
 
 type Status =
+    | ERROR
     | INIT
     | END
     | IDENTIFIER
     | NUMBER
-    | ERROR
+    | OPERATOR
+    | SEPERATOR
+
 
 let cdr = List.tail
 let car = List.head
@@ -33,6 +38,10 @@ let str2list (str:string) =
 let list2str (cl:char list) = 
     new string(cl |> List.toArray)
 
+let (|Blank|_|) = function
+    | ' ' | '\t' | '\n' | '\r' -> Some()
+    | _ -> None
+
 let (|Letter|_|) = function
     | x when x <= 'z' && x >= 'a' -> Some()
     | x when x <= 'Z' && x >= 'A' -> Some()
@@ -43,17 +52,71 @@ let (|Digit|_|) = function
     | _ -> None
 
 let (|Point|_|) = function
-    | x when x = '.' -> Some()
+    | '.' -> Some()
+    | _ -> None
+
+let (|Comma|_|) = function
+    | ',' -> Some()
+    | _ -> None
+
+let (|OpenParen|_|) = function
+    | '(' -> Some()
+    | _ -> None
+
+let (|CloseParen|_|) = function
+    | ')' -> Some()
+    | _ -> None
+
+let (|OpenBracket|_|) = function
+    | '[' -> Some()
+    | _ -> None
+
+let (|CloseBracket|_|) = function
+    | ']' -> Some()
+    | _ -> None
+
+let (|Semic|_|) = function
+    | ';' -> Some()
+    | _ -> None
+
+let (|OpenBrace|_|) = function
+    | '{' -> Some()
+    | _ -> None
+
+let (|CloseBrace|_|) = function
+    | '}' -> Some()
+    | _ -> None
+
+let (|Quotes|_|) = function
+    | ''' -> Some()
+    | _ -> None
+
+let (|DualQuotes|_|) = function
+    | '"' -> Some()
+    | _ -> None
+
+let (|ExprSign|_|) = function
+    | '+' | '-' | '*' | '/' | '&' | '|' | '^' | '%' | '!' | '>' | '<'  -> Some()
+    | _ -> None
+
+let (|Sider|_|) = function
+    | '(' | ')' | '[' | ']' | '{' | '}' -> Some()
+    | _ -> None
+
+let (|Seper|_|) = function
+    | '(' | ')' | '[' | ']' | '{' | '}' | ';' -> Some()
     | _ -> None
 
 let GetToken = function
     | INIT -> Empty
     | IDENTIFIER -> Identifier
     | NUMBER -> Number
-    | ERROR -> Error
+    | SEPERATOR -> Seperator
+    | OPERATOR -> Operator
     | _ -> Error
 
 let rec ReadToken' r len status = function
+    | [] -> Empty, r, len        
     | h::t -> 
         let next_status,is_valid_char = 
             match status with
@@ -61,12 +124,14 @@ let rec ReadToken' r len status = function
                 match h with
                 | Letter -> IDENTIFIER, true
                 | Digit -> NUMBER, true
-                | _ -> INIT, false
+                | ExprSign -> OPERATOR, true
+                | Blank -> INIT, false
+                | Seper -> SEPERATOR,true
+                | _ -> ERROR, true
 
             | IDENTIFIER -> 
                 match h with
-                | Letter -> IDENTIFIER, true
-                | Digit -> IDENTIFIER, true
+                | Letter | Digit | ExprSign -> IDENTIFIER, true
                 | _ -> END, false
 
             | NUMBER -> 
@@ -75,11 +140,18 @@ let rec ReadToken' r len status = function
                 | Digit -> NUMBER, true
                 | _ -> END, false
 
+            | OPERATOR -> 
+                match h with
+                | Letter | Digit -> IDENTIFIER, true
+                | ExprSign -> OPERATOR, true
+                | _ -> END, false
+
+            | SEPERATOR -> END, false
+
             | ERROR -> 
                 match h with
-                | Letter -> ERROR, true
-                | Digit -> ERROR, true
-                | _ -> END, false
+                | Blank -> END, false
+                | _ -> ERROR, false
 
             | _ -> END, false
 
@@ -91,7 +163,6 @@ let rec ReadToken' r len status = function
         else
             ReadToken' (r @ r') (len + 1) next_status t
 
-    | [] -> Empty, r, len        
 
 let ReadToken input = 
     let t, r, len = ReadToken' [] 0 INIT input
@@ -106,5 +177,5 @@ let rec Parse input =
         Parse last
 
 
-let input = str2list ";;   ;"
+let input = str2list "(def *v*)";
 Parse input

@@ -8,7 +8,7 @@
     <ProjectGuid>59a9d7f0-6e2a-487c-be67-d0c84d4cb81f</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Lex</RootNamespace>
-    <AssemblyName>Lex</AssemblyName>
+    <AssemblyName>Lexer</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Lex</Name>
