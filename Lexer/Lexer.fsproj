@@ -42,6 +42,8 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common.fs" />
+    <Compile Include="FSM.fs" />
     <Compile Include="Lexer.fs" />
   </ItemGroup>
   <PropertyGroup>
