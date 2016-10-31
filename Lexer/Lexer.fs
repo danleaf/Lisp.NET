@@ -1,8 +1,11 @@
 ﻿//module Lexer
 
-open Common
+
 open System
-open System.Text.RegularExpressions
+open System.Threading
+open Common
+open Regex
+open FNA
 
 type Token =
     | Error 
@@ -97,55 +100,56 @@ let GetToken = function
 let rec ReadToken' r len status = function
     | [] -> Empty, r, len        
     | h::t -> 
-        let next_status,is_valid_char = 
-            match status with
-            | INIT -> 
-                match h with
-                | Letter -> IDENTIFIER, true
-                | Digit -> NUMBER, true
-                | ExprSign -> OPERATOR, true
-                | Blank -> INIT, false
-                | Seper -> SEPERATOR,true
-                | _ -> ERROR, true
 
-            | IDENTIFIER -> 
-                match h with
-                | Letter | Digit | ExprSign -> IDENTIFIER, true
-                | _ -> END, false
+    let next_status,is_valid_char = 
+        match status with
+        | INIT -> 
+            match h with
+            | Letter -> IDENTIFIER, true
+            | Digit -> NUMBER, true
+            | ExprSign -> OPERATOR, true
+            | Blank -> INIT, false
+            | Seper -> SEPERATOR,true
+            | _ -> ERROR, true
 
-            | NUMBER -> 
-                match h with
-                | Letter -> ERROR, true
-                | Digit -> NUMBER, true
-                | _ -> END, false
-
-            | OPERATOR -> 
-                match h with
-                | Letter | Digit -> IDENTIFIER, true
-                | ExprSign -> OPERATOR, true
-                | _ -> END, false
-
-            | SEPERATOR -> END, false
-
-            | ERROR -> 
-                match h with
-                | Blank -> END, false
-                | _ -> ERROR, false
-
+        | IDENTIFIER -> 
+            match h with
+            | Letter | Digit | ExprSign -> IDENTIFIER, true
             | _ -> END, false
 
-        let r' = if is_valid_char then [h] else []
-        if next_status = END then
-            GetToken status, (r @ r'), len
-        elif t = [] then
-            GetToken next_status, (r @ r'), (len + 1)
-        else
-            ReadToken' (r @ r') (len + 1) next_status t
+        | NUMBER -> 
+            match h with
+            | Letter -> ERROR, true
+            | Digit -> NUMBER, true
+            | _ -> END, false
+
+        | OPERATOR -> 
+            match h with
+            | Letter | Digit -> IDENTIFIER, true
+            | ExprSign -> OPERATOR, true
+            | _ -> END, false
+
+        | SEPERATOR -> END, false
+
+        | ERROR -> 
+            match h with
+            | Blank -> END, false
+            | _ -> ERROR, false
+
+        | _ -> END, false
+
+    let r' = if is_valid_char then [h] else []
+    if next_status = END then
+        GetToken status, (r @ r'), len
+    elif t = [] then
+        GetToken next_status, (r @ r'), (len + 1)
+    else
+        ReadToken' (r @ r') (len + 1) next_status t
 
 
 let ReadToken input = 
     let t, r, len = ReadToken' [] 0 INIT input
-    t, (list2str r), (cdrn len input), len
+    t, (l2s r), (cdrn len input), len
 
 let rec Parse input =
     let token, word, last,len = ReadToken input
@@ -156,8 +160,30 @@ let rec Parse input =
         Parse last
 
 
-let input = str2list "(def *v*)"
+let input = s2l "(def *v*)"
 Parse input
 
-let regex = new Regex("[0-Z]+")
-let m = regex.Match("123Aa")
+let r = new System.Text.RegularExpressions.Regex("[0-Z]+")
+let m = r.Match("123Aa")
+
+let rec printset' = function
+    | [] -> ()
+    | h::t -> 
+        printf "%c " h
+        printset' t
+
+let printset (set:Set<_>) = 
+    printf "set: "
+    List.ofSeq set |> printset'
+    printfn ""
+
+try
+    let set,_,_ = s2l "\*0-9+]" |> bracket
+    printset set
+with | e -> printfn "%A" e
+
+let fna = regex "int" (s2l "11110")
+
+let regstr = "111101111012211110"
+
+matchall (s2l regstr) fna

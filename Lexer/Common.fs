@@ -12,11 +12,14 @@ let rec cdrn n l =
         | _::tail -> cdrn (n-1) tail
         
 
-let str2list (str:string) = 
+let s2l (str:string) = 
     str.ToCharArray() |> List.ofArray 
 
-let list2str (cl:char list) = 
+let l2s (cl:char list) = 
     new string(cl |> List.toArray)
+
+let l2set l = Set<_>(l)
+let c2set c = Set<char>([c])
 
 let (|Letter|_|) = function
     | x when x <= 'z' && x >= 'a' -> Some()
