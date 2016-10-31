@@ -182,8 +182,9 @@ try
     printset set
 with | e -> printfn "%A" e
 
-let fna = regex "int" (s2l "11110")
+let fna = regex "int" (s2l @"[^\w]+")
 
-let regstr = "111101111012211110"
+let regstr = @",./11101111012211110"
 
-matchall (s2l regstr) fna
+let name,len = mtch (s2l regstr) fna
+printfn "%s: %s" name (regstr.Substring(0,len))

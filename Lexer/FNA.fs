@@ -11,7 +11,7 @@ type FNA(statname:string, ends:bool) =
 
     member val Transitors:list<Set<char> * FNA * bool> = [] with get,set
 
-    member me.EndStatus with get() = ends
+    member me.EndStatus with get() = ends and set(v) = ends <- v
 
     member me.AddTransitor (trans:Set<char> * FNA * bool) =
         me.Transitors <- trans::me.Transitors

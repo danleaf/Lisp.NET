@@ -63,8 +63,7 @@ let rec bracket' l set =
     | ']'::tail -> set, tail
     | _ ->
 
-    let l' = readl l
-    match l' with
+    match readl l with
     | [] -> failwith "[] Set is not finish"
     | Special _::'-'::_ -> failwith "wrong x-y expression"
     | Special c::tail ->
@@ -100,20 +99,38 @@ let map = new Map<Set<char>, int>([cset, 0])
 
 let rec regex' name l (fna:FNA) = 
     match l with
-    | '['::tail ->  
-        let set, rest, neg = bracket tail
-        if tail = [] then
-            fna.AddTransitor (set, new FNA(name), neg) |> ignore
-        else 
-            fna.AddTransitor (set, new FNA(), neg) |> regex' name rest 
-
-    | c::[] ->
-        fna.AddTransitor (c2set c, new FNA(name), false) |> ignore
-
-    | c::tail ->
-        fna.AddTransitor (c2set c, new FNA(), false) |> regex' name tail
-
     | [] -> ()
+    | _ ->
+
+    let rest,set,neg,fna' = 
+        match l with
+        | [] -> failwith ""
+        | '['::tail ->  
+            let set, rest, neg = bracket tail
+            rest, set, neg, 
+            match rest with
+            | [] -> fna.AddTransitor (set, new FNA(name), neg)
+            | _ -> fna.AddTransitor (set, new FNA(), neg)
+                    
+        | _ -> 
+                
+        match readl l with
+        | [] -> failwith ""
+        | Special c::[] -> [], getspec c, false, fna.AddTransitor (getspec c, new FNA(name), false)
+        | Special c::tail -> tail, getspec c, false, fna.AddTransitor (getspec c, new FNA(), false)
+        | c::[] -> [], c2set c, false, fna.AddTransitor (c2set c, new FNA(name), false)
+        | c::tail -> tail, c2set c, false, fna.AddTransitor (c2set c, new FNA(), false)
+
+    match rest with
+    | [] -> ()
+    | '+'::[] -> 
+        fna'.EndStatus<- true 
+        fna'.AddTransitor (set, fna', neg) |> ignore
+    | '+'::tail -> fna'.AddTransitor (set, fna', neg) |> regex' name tail
+    | '?'::tail -> ()
+    | '*'::tail -> ()
+    | _ -> regex' name rest fna'
+    
 
 let regex name l =
     let fna = FNA()
@@ -139,24 +156,5 @@ let rec matchone len l (fna:FNA) =
             "", 0   
 
 
-let rec mtch idx l (fna:FNA) = 
-    let name, len = matchone 0 l fna
-    match l with
-    | [] | _::[] -> name, idx, len
-    | _ ->
-
-    if len = 0 then
-        mtch (idx+1) (cdr l) fna
-    else
-        name, idx, len
-
-
-let rec matchall l (fna:FNA) = 
-    let name,idx,len = mtch 0 l fna
-    if len = 0 then
-        printfn "can't parse"
-    else
-        printfn "%s: %s" name ((l2s l).Substring(idx,len))
-        let rest = cdrn (idx + len) l
-        if not (rest = []) then
-            matchall rest fna
+let rec mtch l (fna:FNA) = 
+    matchone 0 l fna
