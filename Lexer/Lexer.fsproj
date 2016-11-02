@@ -45,7 +45,6 @@
     <Compile Include="Common.fs" />
     <Compile Include="FNA.fs" />
     <Compile Include="Regex.fs" />
-    <Compile Include="Lexer.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

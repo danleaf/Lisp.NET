@@ -163,28 +163,3 @@ let rec Parse input =
 let input = s2l "(def *v*)"
 Parse input
 
-let r = new System.Text.RegularExpressions.Regex("[0-Z]+")
-let m = r.Match("123Aa")
-
-let rec printset' = function
-    | [] -> ()
-    | h::t -> 
-        printf "%c " h
-        printset' t
-
-let printset (set:Set<_>) = 
-    printf "set: "
-    List.ofSeq set |> printset'
-    printfn ""
-
-try
-    let set,_,_ = s2l "\*0-9+]" |> bracket
-    printset set
-with | e -> printfn "%A" e
-
-let fna = regex "int" (s2l @"[^\w]+")
-
-let regstr = @",./11101111012211110"
-
-let name,len = mtch (s2l regstr) fna
-printfn "%s: %s" name (regstr.Substring(0,len))

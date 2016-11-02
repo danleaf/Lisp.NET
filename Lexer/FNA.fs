@@ -1,17 +1,25 @@
 ﻿module FNA
+open System
 
-type FNA(statname:string, ends:bool) = 
-    let mutable statname = statname
-    let mutable ends = ends
+let mutable index = 0
 
-    new () = FNA("", false)
-    new (statname:string) = FNA(statname, true)
+type FNA() = 
+    let mutable statname = ""
+    let mutable ends = false
+    let id = index
+    do index <- index + 1
 
     member me.StatusName with get() = statname
+    member me.ID with get() = id
 
     member val Transitors:list<Set<char> * FNA * bool> = [] with get,set
+    member val DirectTo:DirectNext = NoneNext with get,set
 
-    member me.EndStatus with get() = ends and set(v) = ends <- v
+    member me.EndStatus with get() = ends
+
+    member me.SetToEndStatus (name:string) = 
+        ends <- true
+        statname <- name
 
     member me.AddTransitor (trans:Set<char> * FNA * bool) =
         me.Transitors <- trans::me.Transitors
@@ -27,3 +35,25 @@ type FNA(statname:string, ends:bool) =
             | _ -> 
                 if not (set.Contains c) then 
                     yield fna]
+and DirectNext =
+    | Next of FNA
+    | NoneNext
+
+let nameof (fna:FNA) = fna.StatusName
+
+let rec setend (fnas:FNA list) name =
+    match fnas with 
+    | head::tail -> 
+        head.SetToEndStatus name
+        setend tail name
+    | [] -> ()
+
+let rec addtrans (fnas:FNA list) set fna neg =
+    match fnas with 
+    | head::tail -> 
+        head.AddTransitor (set, fna, neg) |> ignore
+        addtrans tail set fna neg
+    | [] -> fna
+
+let cotr_fna c = []
+    

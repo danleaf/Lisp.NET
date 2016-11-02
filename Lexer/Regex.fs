@@ -92,69 +92,115 @@ let bracket = function
     | l -> 
         let set, rest = bracket' l cset
         set, rest, false
-    
 
-let map = new Map<Set<char>, int>([cset, 0])
-    
 
-let rec regex' name l (fna:FNA) = 
+
+let rec regex_ name l fnas = 
     match l with
-    | [] -> ()
+    | [] -> 
+        setend fnas name
+        fnas, []
     | _ ->
 
-    let rest,set,neg,fna' = 
+    let rest,set,neg,fna_ = 
         match l with
         | [] -> failwith ""
         | '['::tail ->  
             let set, rest, neg = bracket tail
-            rest, set, neg, 
-            match rest with
-            | [] -> fna.AddTransitor (set, new FNA(name), neg)
-            | _ -> fna.AddTransitor (set, new FNA(), neg)
+            rest, set, neg, addtrans fnas set (new FNA()) neg
                     
         | _ -> 
                 
         match readl l with
         | [] -> failwith ""
-        | Special c::[] -> [], getspec c, false, fna.AddTransitor (getspec c, new FNA(name), false)
-        | Special c::tail -> tail, getspec c, false, fna.AddTransitor (getspec c, new FNA(), false)
-        | c::[] -> [], c2set c, false, fna.AddTransitor (c2set c, new FNA(name), false)
-        | c::tail -> tail, c2set c, false, fna.AddTransitor (c2set c, new FNA(), false)
+        | Special c::tail -> tail, getspec c, false, addtrans fnas (getspec c) (new FNA()) false
+        | c::tail -> tail, c2set c, false, addtrans fnas (c2set c) (new FNA()) false
 
     match rest with
-    | [] -> ()
-    | '+'::[] -> 
-        fna'.EndStatus<- true 
-        fna'.AddTransitor (set, fna', neg) |> ignore
-    | '+'::tail -> fna'.AddTransitor (set, fna', neg) |> regex' name tail
-    | '?'::tail -> ()
-    | '*'::tail -> ()
-    | _ -> regex' name rest fna'
+    | '+'::tail -> [fna_.AddTransitor (set, fna_, neg)] |> regex_ name tail
+    | '*'::tail -> fnas @ [fna_.AddTransitor (set, fna_, neg)] |> regex_ name tail
+    | '?'::tail -> fnas @ [fna_] |> regex_ name tail
+    | _ -> regex_ name rest [fna_]
     
 
 let regex name l =
-    let fna = FNA()
-    regex' name l fna
+    let fna = new FNA()
+    regex_ name l [fna] |> ignore
     fna
 
-let rec matchone len l (fna:FNA) =
+let rec trans_ c (fnas:FNA list) r =
+    match fnas with
+    | [] -> r
+    | fna::tail -> (r @ fna.Transit c) |> trans_ c tail
+
+let rec trans fnas c =
+    trans_ c fnas []
+
+let rec findend_ (fnas:FNA list) r =
+    match fnas with
+    | [] -> r
+    | fna::tail -> (r @ [if fna.EndStatus then yield fna]) |> findend_ tail
+
+let findend fnas = findend_ fnas []    
+
+let rec matchone len l fnas long =
     match l with
     | head::tail  ->
-        let fnas = fna.Transit head
-        if fnas = [] then
-            if fna.EndStatus then
-                fna.StatusName,len
+        if long then
+            let nextfnas = trans fnas head
+            if nextfnas = [] then
+                let endfnas = findend fnas
+                if endfnas = [] then
+                    "",0
+                else
+                    nameof(car endfnas),len
             else
-                "",0
+                matchone (len+1) tail nextfnas long
         else
-            let fna = car fnas
-            matchone (len+1) tail fna
+            let endfnas = findend fnas
+            if not (endfnas = []) then
+                nameof(car endfnas),len
+            else
+                let nextfnas = trans fnas head
+                if nextfnas = [] then
+                    let endfnas = findend fnas
+                    if endfnas = [] then
+                        "",0
+                    else
+                        nameof(car endfnas),len
+                else
+                    matchone (len+1) tail nextfnas long
     | [] -> 
-        if fna.EndStatus then
-            fna.StatusName,len
+        let endfnas = findend fnas
+        if endfnas = [] then
+            "",0
         else
-            "", 0   
+            nameof(car endfnas),len
 
 
-let rec mtch l (fna:FNA) = 
-    matchone 0 l fna
+let mtchlong l (fna:FNA) = matchone 0 l [fna] true
+
+let mtchshort l (fna:FNA) = matchone 0 l [fna] false
+
+
+let r = new System.Text.RegularExpressions.Regex("[0-Z]+")
+let m = r.Match("123Aa")
+
+let rec printset' = function
+    | [] -> ()
+    | h::t -> 
+        printf "%c " h
+        printset' t
+
+let printset (set:Set<_>) = 
+    printf "set: "
+    List.ofSeq set |> printset'
+    printfn ""
+
+//let fna = regex "int" (s2l @"""[^\r\n]*""")
+let fna = regex "int" (s2l @"112*1")
+
+let regstr = @"11221"
+
+let name,len = mtchshort (s2l regstr) fna
+printfn "%s: %s" name (regstr.Substring(0,len))
