@@ -1,5 +1,6 @@
 ﻿module NfaModule
 open System
+open Common
 
 type NfaStatic() =
     static let mutable nfaNodeIdx = 0
@@ -54,6 +55,7 @@ and NfaNode() as this =
 and Transitor' =
     | Transitor of Set<char> * NfaNode
     | NoTransitor
+
 and Nfa' = 
     | Nfa of NfaNode * NfaNode
     | EmptyNfa

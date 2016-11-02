@@ -150,15 +150,20 @@ let printset (set:Set<_>) =
 //let name,len = mtchshort (s2l regstr) nfa
 //printfn "%s: %s" name (regstr.Substring(0,len))
 
-let nfa,_ = _regex "int" (s2l @"(1|2)*") EmptyNfa
+let nfa,_ = _regex "int" (s2l @"(1|2)*1") EmptyNfa
 
 let map = compute_e_close NfaStatic.NodeMap
 
 let mm = 
     match nfa with
     | Nfa(st,ed) -> 
-        let stset = search_e_close st
-        ctor_next_set stset
+        TfaNode(get_eclose st.ID)
     | _ -> failwith ""
+
+let trans1 = Transition(OpSet['1';'2';'3'], OpSet[1;2;3])
+let trans2 = Transition(OpSet['3'], OpSet[2;3;4])
+
+let trans = Transition.Join(trans1,trans2)
+
 
 printfn "end"
