@@ -1,7 +1,8 @@
 ﻿module Regex
 
 open Common
-open FNA
+open NfaModule
+open DfaModule
 
 let cset = Set<char>([])
 
@@ -84,103 +85,47 @@ let rec bracket' l set =
     | c::tail ->
         set |> set_add c |> bracket' tail
 
+let diffset (set:Set<char>) = 
+    Set[for c in '\000'..'\127' do
+            if not (set.Contains c) then
+                yield c]
+
 
 let bracket = function
     | '^'::tail -> 
         let set, rest = bracket' tail cset
-        set, rest, true
+        diffset set, rest
     | l -> 
         let set, rest = bracket' l cset
-        set, rest, false
+        set, rest
 
-
-
-let rec regex_ name l fnas = 
+let rec _regex name l nfa = 
     match l with
-    | [] -> 
-        setend fnas name
-        fnas, []
+    | [] -> nfa,[]
+    | ')'::tail -> nfa, tail 
+    | '|'::tail ->
+        let nextnfa,rest = _regex name tail EmptyNfa       
+        parallel_nfa nfa nextnfa, rest
     | _ ->
-
-    let rest,set,neg,fna_ = 
+    let curnfa, rest = 
         match l with
         | [] -> failwith ""
+        | '('::tail ->
+            _regex name tail EmptyNfa
         | '['::tail ->  
-            let set, rest, neg = bracket tail
-            rest, set, neg, addtrans fnas set (new FNA()) neg
-                    
+            let set, rest = bracket tail
+            cotr_nfa set, rest
         | _ -> 
-                
         match readl l with
         | [] -> failwith ""
-        | Special c::tail -> tail, getspec c, false, addtrans fnas (getspec c) (new FNA()) false
-        | c::tail -> tail, c2set c, false, addtrans fnas (c2set c) (new FNA()) false
-
+        | Special c::tail -> cotr_nfa (getspec c), tail
+        | c::tail -> cotr_nfa (c2set c), tail
     match rest with
-    | '+'::tail -> [fna_.AddTransitor (set, fna_, neg)] |> regex_ name tail
-    | '*'::tail -> fnas @ [fna_.AddTransitor (set, fna_, neg)] |> regex_ name tail
-    | '?'::tail -> fnas @ [fna_] |> regex_ name tail
-    | _ -> regex_ name rest [fna_]
-    
-
-let regex name l =
-    let fna = new FNA()
-    regex_ name l [fna] |> ignore
-    fna
-
-let rec trans_ c (fnas:FNA list) r =
-    match fnas with
-    | [] -> r
-    | fna::tail -> (r @ fna.Transit c) |> trans_ c tail
-
-let rec trans fnas c =
-    trans_ c fnas []
-
-let rec findend_ (fnas:FNA list) r =
-    match fnas with
-    | [] -> r
-    | fna::tail -> (r @ [if fna.EndStatus then yield fna]) |> findend_ tail
-
-let findend fnas = findend_ fnas []    
-
-let rec matchone len l fnas long =
-    match l with
-    | head::tail  ->
-        if long then
-            let nextfnas = trans fnas head
-            if nextfnas = [] then
-                let endfnas = findend fnas
-                if endfnas = [] then
-                    "",0
-                else
-                    nameof(car endfnas),len
-            else
-                matchone (len+1) tail nextfnas long
-        else
-            let endfnas = findend fnas
-            if not (endfnas = []) then
-                nameof(car endfnas),len
-            else
-                let nextfnas = trans fnas head
-                if nextfnas = [] then
-                    let endfnas = findend fnas
-                    if endfnas = [] then
-                        "",0
-                    else
-                        nameof(car endfnas),len
-                else
-                    matchone (len+1) tail nextfnas long
-    | [] -> 
-        let endfnas = findend fnas
-        if endfnas = [] then
-            "",0
-        else
-            nameof(car endfnas),len
-
-
-let mtchlong l (fna:FNA) = matchone 0 l [fna] true
-
-let mtchshort l (fna:FNA) = matchone 0 l [fna] false
+    | '+'::tail -> cycle_nfa curnfa |> concat_nfa nfa |> _regex name tail
+    | '?'::tail -> jump_nfa curnfa |> concat_nfa nfa |> _regex name tail
+    | '*'::tail -> cycle_and_jump_nfa curnfa |> concat_nfa nfa |> _regex name tail
+    | _ -> concat_nfa nfa curnfa |> _regex name rest
+        
 
 
 let r = new System.Text.RegularExpressions.Regex("[0-Z]+")
@@ -197,10 +142,23 @@ let printset (set:Set<_>) =
     List.ofSeq set |> printset'
     printfn ""
 
-//let fna = regex "int" (s2l @"""[^\r\n]*""")
-let fna = regex "int" (s2l @"112*1")
+//let nfa = regex "int" (s2l @"""[^\r\n]*""")
+//let nfa = regex "int" (s2l @"112*1")
 
-let regstr = @"11221"
+//let regstr = @"11221"
+//
+//let name,len = mtchshort (s2l regstr) nfa
+//printfn "%s: %s" name (regstr.Substring(0,len))
 
-let name,len = mtchshort (s2l regstr) fna
-printfn "%s: %s" name (regstr.Substring(0,len))
+let nfa,_ = _regex "int" (s2l @"(1|2)*") EmptyNfa
+
+let map = compute_e_close NfaStatic.NodeMap
+
+let mm = 
+    match nfa with
+    | Nfa(st,ed) -> 
+        let stset = search_e_close st
+        ctor_next_set stset
+    | _ -> failwith ""
+
+printfn "end"

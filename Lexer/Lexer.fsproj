@@ -43,7 +43,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common.fs" />
-    <Compile Include="FNA.fs" />
+    <Compile Include="NFA.fs" />
+    <Compile Include="DFA.fs" />
     <Compile Include="Regex.fs" />
   </ItemGroup>
   <PropertyGroup>
