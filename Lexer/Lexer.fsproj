@@ -44,8 +44,10 @@
   <ItemGroup>
     <Compile Include="Common.fs" />
     <Compile Include="NFA.fs" />
+    <Compile Include="TFA.fs" />
     <Compile Include="DFA.fs" />
     <Compile Include="Regex.fs" />
+    <Compile Include="test.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
