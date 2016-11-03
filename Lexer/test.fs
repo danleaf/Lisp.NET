@@ -2,10 +2,10 @@
 open DfaModule
 open Common
 
-let r = new System.Text.RegularExpressions.Regex(@"[a-zA-Z_][\w]*")
-let m = r.Match(@"djfhjf \n jfjdf \n 232.0ff \t kdjfe 0.12.1")
+let r = new System.Text.RegularExpressions.Regex(@"""([^""\\]*|\\.)*""")
+let m = r.Match(@"""sdfdsefdfdsfdsfsdf\""dsfds\fsdfsdf""")
 
-//printfn "input: %s" m.Value
+printfn "input: %s" m.Value
 
 let rec printset' = function
     | [] -> ()
@@ -18,20 +18,16 @@ let printset (set:Set<_>) =
     List.ofSeq set |> printset'
     printfn ""
 
-//let nfa = regex "int" (s2l @"""[^\r\n]*""")
-//let nfa = regex "int" (s2l @"112*1")
-
-//let regstr = @"11221"
-//
-//let name,len = mtchshort (s2l regstr) nfa
-//printfn "%s: %s" name (regstr.Substring(0,len))
 
 
-let regexs = [Regex(@";"),"sepor";
+let regexs = [  Regex(@"""([^""\r\n\\]*|\\.)*"""),"string";
+                //Regex(@"""([^""\r\n]*|\\"")*"""),"string";
+                Regex(@";"),"sepor";
                 Regex(@"[\r\n \t]+"),"blank";
                 Regex(@"[a-zA-Z_][\w]*"),"identifier";
-                Regex(@"[0-9]+(.[0-9]+)?"),"number";
-                Regex("[\000-\127]"),"Error"]
+                Regex(@"\."),"point";
+                Regex(@"[0-9]+(\.[0-9]+)?"),"number";
+                Regex(@"."),"Error"]
 
 let rec matchone (str:string) (regexs:(Regex*string) list) =
     match regexs with
@@ -53,29 +49,7 @@ let rec matchall (str:string) (regexs:(Regex*string) list) =
         if str.Length > len then
             matchall (str.Substring(len)) regexs
 
-matchall @"
-        public static void Main()
-        {
-
-            object[] ctorParams = new object[2];
-
-            string myX = ""1"";
-            string myY = ""2"";
-
-            Console.WriteLine(""---"");
-
-            ctorParams[0] = Convert.ToInt32(myX);
-            ctorParams[1] = Convert.ToInt32(myY);
-
-            Type ptType = CreateDynamicType();
-
-            object ptInstance = Activator.CreateInstance(ptType, ctorParams);
-            ptType.InvokeMember(""WritePoint"",
-                    BindingFlags.InvokeMethod,
-                    null,
-                    ptInstance,
-                    new object[0]);
-        }" regexs
+matchall @"""sdf""dsefd""fdsfdsfsdf\""dsfdsf\rsdfsdf""dfsdf,dsf,0sdf\ew32\f\dsf\\r4..99a999,99.9""" regexs
 
 
 

@@ -18,6 +18,11 @@ type Regex(regexStr:string) =
     let spec c = char(int c + 128)
     let despec c = char(int c - 128)
     let (|Special|_|) c = if c > '\128' then Some(despec c) else None
+    
+    let diffset (set:Set<char>) = 
+        Set[for c in '\000'..'\127' do
+                if not (set.Contains c) then
+                    yield c]
 
     let getspec = function
         | 'w' -> 
@@ -28,6 +33,8 @@ type Regex(regexStr:string) =
 
         | 'd' -> 
             set_addl ['0'..'9'] cset
+
+        | '.' -> diffset (Set['\n';'\r'])
 
         | _ -> failwith "wrong special character"
 
@@ -86,10 +93,6 @@ type Regex(regexStr:string) =
         | c::tail ->
             set |> set_add c |> bracket' tail
 
-    let diffset (set:Set<char>) = 
-        Set[for c in '\000'..'\127' do
-                if not (set.Contains c) then
-                    yield c]
 
 
     let bracket = function
@@ -116,6 +119,7 @@ type Regex(regexStr:string) =
             | '['::tail ->  
                 let set, rest = bracket tail
                 cotr_nfa set, rest
+            | '.'::tail -> cotr_nfa (getspec '.'), tail                
             | _ -> 
             match readl l with
             | [] -> failwith ""
