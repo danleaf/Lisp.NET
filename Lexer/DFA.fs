@@ -1,6 +1,7 @@
 ﻿namespace Lexer
 
 open System.Collections.Generic
+open System.Web.Script.Serialization
 open Common
 
 type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
@@ -28,6 +29,14 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
         let len = DFA.match' 0 (s2l input) me true
         { Value = input.Substring(0,len); Length = len }
 
+    member me.ToJson() =
+        let data = me.ToSerializerableStruct()
+        JavaScriptSerializer().Serialize(data)
+
+    static member FromJson(json:string) =
+        let data = JavaScriptSerializer().Deserialize<Dfa>(json)
+        DFA.FromSerializerableStruct(data)
+
     member me.ToSerializerableStruct() =
         let set = new HashSet<int>()    
         let nodes = new List<DfaNode>()
@@ -39,7 +48,6 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
         for node in dfa.NodeList do
             map.Add(node.ID, node)
         DFA.FromDfaNode(dfa.StartID, map, new Dictionary<int, DFA>())
-
     
     static member private FromDfaNode(nodeID,nodeMap:Dictionary<int, DfaNode>,dfaMap:Dictionary<int, DFA>) = 
             
@@ -51,7 +59,7 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
             dfaMap.Add(dfa.ID, dfa)
             dfa.SetTransitors(
                 [for v in node.Transitors do
-                    yield Transitor(v.Input, DFA.FromDfaNode(v.Dest, nodeMap, dfaMap))])
+                    yield Transitor.cotr(v.Input, DFA.FromDfaNode(v.Dest, nodeMap, dfaMap))])
             dfa
         
     static member private FromTfa(tfa:TFA, map:Dictionary<int, DFA>) = 
@@ -107,9 +115,9 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
         if set.Contains(id) then
             ()
         else
-            let transList = new List<Transitor<char,int>>()
+            let transList = new List<NodeTransitor<char,int>>()
             for trans in transitors do
-                transList.Add(Transitor(trans.Input, trans.Dest.ID))
+                transList.Add(NodeTransitor.cotr(trans.Input, trans.Dest.ID))
             let node = { ID = me.ID; IsEnd =me.IsEnd; Transitors = transList }
             set.Add(node.ID) |> ignore
             result.Add(node)
@@ -119,6 +127,14 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
 
 and MatchResult = { Value:string; Length:int }
 
-and DfaNode = { ID:int; IsEnd:bool; Transitors:Transitor<char,int> List }
+and [<CLIMutable>] DfaNode = { ID:int; IsEnd:bool; Transitors:NodeTransitor<char,int> List }
 
-and Dfa = { StartID:int; NodeList:DfaNode List }
+and [<CLIMutable>] Dfa = { StartID:int; NodeList:DfaNode List }
+
+and [<CLIMutable>] NodeTransitor<'input,'dest when 'input:comparison> = { Input:List<'input>; Dest:'dest }
+with 
+    static member cotr(input:Opset<'input>, dest:'dest) : NodeTransitor<'input,'dest> =
+        let trans = {Input = new List<'input>(); Dest = dest}
+        for v in input.Set do
+            trans.Input.Add(v)
+        trans

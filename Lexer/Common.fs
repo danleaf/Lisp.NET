@@ -63,6 +63,12 @@ type Opset<'t when 't:comparison>(set:'t Set) =
 type Transitor<'input,'dest when 'input:comparison> (input:Opset<'input>, dest:'dest) = 
     let input = input
     let dest = dest
+
+    static member cotr (input:'input List, dest:'dest) =
+        let mutable set = Opset<'input>[]
+        for v in input do
+            set <- set.Add(v)
+        Transitor(set, dest)
     
     member me.Input with get() = input
     member me.Dest with get() = dest

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Web.Script.Serialization;
 using System.Xml;
+using System.IO;
 using Lexer;
 
 namespace mylisp
@@ -177,13 +178,27 @@ namespace mylisp
 
         public static void Main()
         {
-            Regex regex = new Regex(@"""([^""\r\n\\]*|\\.)*""");
+            Regex regex = null;
+            var fileinfo = new FileInfo("d:/regex.json");
+            
+            if (!fileinfo.Exists)
+            {    
+                regex = new Regex("string",@"""([^""\r\n\\]*|\\.)*""");
+                var json = regex.ToJson();
+                var writer = fileinfo.CreateText();
+                writer.Write(json);
+                writer.Close();
+                Console.WriteLine("create new");
+            }
+            else
+            {
+                var stream = fileinfo.OpenRead();
+                var json = new StreamReader(stream).ReadToEnd();
+                regex = Regex.FromJson(json);
+                Console.WriteLine("read old");
+            }
             var result = regex.Match(@"""qeqw\""qweqwe""sfsdf""");
             Console.WriteLine(result.Value);
-            JavaScriptSerializer jss = new JavaScriptSerializer();
-            var data = regex.DFA.ToSerializerableStruct();
-            string str = DafToXml(data);
-            Console.WriteLine(str);
         }
 
         public static string DafToXml(Dfa dfa)
@@ -223,13 +238,13 @@ namespace mylisp
                         XmlElement xv = doc.CreateElement("Input");
                         input.AppendChild(xv);
                         var vs = v.ToString();
-                        switch (v)
-                        {
-                            case '\t': vs = @"\t"; break;
-                            case '\r': vs = @"\r"; break;
-                            case '\n': vs = @"\n"; break;
-                            case ' ': vs = @"\B"; break;
-                        }
+                        //switch (v)
+                        //{
+                        //    case '\t': vs = @"\t"; break;
+                        //    case '\r': vs = @"\r"; break;
+                        //    case '\n': vs = @"\n"; break;
+                        //    case ' ': vs = @"\B"; break;
+                        //}
                         xv.SetAttribute("Value", vs);
                     }
                 }

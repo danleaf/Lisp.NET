@@ -17,39 +17,17 @@ let printset (set:Set<_>) =
     List.ofSeq set |> printset'
     printfn ""
 
+let lexer = new Lexer([("string", @"""([^""\r\n\\]*|\\.)*""");
+                        ("sepor",@";");
+                        ("identifier",@"[a-zA-Z_][\w]*");
+                        ("number",@"[0-9]+(\.[0-9]+)?");
+                        ("point",@"\.");
+                        ("Error",@".")])
 
+let result = lexer.GetTokenList(@"""sdf""dsefd""fdsfdsfsdf\""dsfdsf\rsdfsdf""dfsdf,dsf,0sdf\ew32\f\dsf\\r4..99a999,99.9""")
 
-let regexs = [  Regex(@"""([^""\r\n\\]*|\\.)*"""),"string";
-                Regex(@";"),"sepor";
-                Regex(@"[\r\n \t]+"),"blank";
-                Regex(@"[a-zA-Z_][\w]*"),"identifier";
-                Regex(@"\."),"point";
-                Regex(@"[0-9]+(\.[0-9]+)?"),"number";
-                Regex(@"."),"Error"]
-
-let rec matchone (str:string) (regexs:(Regex*string) list) =
-    match regexs with
-    | [] -> "Unkown","",0
-    | (reg, name)::tail -> 
-        let r = reg.Match str
-        if r.Length > 0 then
-            name,r.Value,r.Length
-        else
-            matchone str tail
-
-let rec matchall (str:string) (regexs:(Regex*string) list) =
-    let name,r,len = matchone str regexs
-    printfn "%s: %s" name (r.Replace("\r","\\r").Replace("\n","\\n").Replace("\t","\\t").Replace(" ","\\b"))
-    if len = 0 then
-        if str.Length > 1 then
-            matchall (str.Substring(1)) regexs
-    else
-        if str.Length > len then
-            matchall (str.Substring(len)) regexs
-
-matchall @"""sdf""dsefd""fdsfdsfsdf\""dsfdsf\rsdfsdf""dfsdf,dsf,0sdf\ew32\f\dsf\\r4..99a999,99.9""" regexs
-
-
+for name,str in result do
+    printfn "%s: %s" name str
 
 
 let trans1 = Transition(Opset['7';'8';'9'], Opset[1;2;3])

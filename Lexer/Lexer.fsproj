@@ -40,6 +40,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common.fs" />
@@ -47,6 +48,7 @@
     <Compile Include="TFA.fs" />
     <Compile Include="DFA.fs" />
     <Compile Include="Regex.fs" />
+    <Compile Include="Lexer.fs" />
     <Compile Include="test.fs" />
   </ItemGroup>
   <PropertyGroup>
