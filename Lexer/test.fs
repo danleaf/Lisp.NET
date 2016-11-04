@@ -1,11 +1,10 @@
 ﻿open Lexer
-open DfaModule
 open Common
 
 let r = new System.Text.RegularExpressions.Regex(@"""([^""\\]*|\\.)*""")
 let m = r.Match(@"""sdfdsefdfdsfdsfsdf\""dsfds\fsdfsdf""")
 
-printfn "input: %s" m.Value
+//printfn "input: %s" m.Value
 
 let rec printset' = function
     | [] -> ()
@@ -21,7 +20,6 @@ let printset (set:Set<_>) =
 
 
 let regexs = [  Regex(@"""([^""\r\n\\]*|\\.)*"""),"string";
-                //Regex(@"""([^""\r\n]*|\\"")*"""),"string";
                 Regex(@";"),"sepor";
                 Regex(@"[\r\n \t]+"),"blank";
                 Regex(@"[a-zA-Z_][\w]*"),"identifier";
@@ -33,9 +31,9 @@ let rec matchone (str:string) (regexs:(Regex*string) list) =
     match regexs with
     | [] -> "Unkown","",0
     | (reg, name)::tail -> 
-        let (r,len) = matchlong str reg.DFA
-        if len > 0 then
-            name,r,len
+        let r = reg.Match str
+        if r.Length > 0 then
+            name,r.Value,r.Length
         else
             matchone str tail
 
@@ -54,10 +52,10 @@ matchall @"""sdf""dsefd""fdsfdsfsdf\""dsfdsf\rsdfsdf""dfsdf,dsf,0sdf\ew32\f\dsf\
 
 
 
-let trans1 = Transition(OpSet['7';'8';'9'], OpSet[1;2;3])
-let trans2 = Transition(OpSet['4';'5';'6'], OpSet[1;2;3])
-let trans3 = Transition(OpSet['1';'2';'3'], OpSet[1;2;3])
-let trans4 = Transition(OpSet['c';'v';'b'], OpSet[0;2;3])
+let trans1 = Transition(Opset['7';'8';'9'], Opset[1;2;3])
+let trans2 = Transition(Opset['4';'5';'6'], Opset[1;2;3])
+let trans3 = Transition(Opset['1';'2';'3'], Opset[1;2;3])
+let trans4 = Transition(Opset['c';'v';'b'], Opset[0;2;3])
 
 let trans = Transition.Join([trans3;trans2], trans1)
 

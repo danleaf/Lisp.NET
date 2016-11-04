@@ -1,20 +1,17 @@
 ﻿namespace Lexer
 
 open System
+open System.Collections.Generic
 open Common
 
-type Transitor<'input,'dest> =
-    | Transitor of 'input * 'dest
-    | NoTransitor
-
 //NFA节点，创建节点时会将节点信息加入NfaStatic
-and NfaNode() as this = 
+type NfaNode() as this = 
     static let mutable nfaNodeIdx = 0
-    static let mutable nodeMap = new System.Collections.Generic.Dictionary<int, NfaNode>()
+    static let mutable nodeMap = new Dictionary<int, NfaNode>()
 
-    let mutable statname = ""
     let mutable ends = false
     let mutable directTo:NfaNode Set = Set[]
+    let mutable transitor:Transitor<char, NfaNode> option = None
     let id = nfaNodeIdx 
     
     do 
@@ -22,7 +19,7 @@ and NfaNode() as this =
         nodeMap.Add(id, this)        
 
     //获取某NFA节点的ε闭包
-    static member private get_e_close (node:NfaNode) (set:int Set) =
+    static member private get_e_close (node:NfaNode) (set:int Opset) =
         if set.Contains node.ID then
             set
         else
@@ -32,8 +29,8 @@ and NfaNode() as this =
             newset
 
     static member GetNode(id) = nodeMap.[id]
-    static member GetEClose(id) = NfaNode.get_e_close nodeMap.[id] (Set[])
-    static member GetEClose(node:NfaNode) = NfaNode.get_e_close node (Set[])
+    static member GetEClose(id) = NfaNode.get_e_close nodeMap.[id] (Opset[])
+    static member GetEClose(node:NfaNode) = NfaNode.get_e_close node (Opset[])
 
     member me.GetEClose() = NfaNode.GetEClose(me)
     
@@ -51,20 +48,18 @@ and NfaNode() as this =
     override me.GetHashCode () =
         id.GetHashCode()
 
-    member me.StatusName with get() = statname
     member me.ID with get() = id
 
-    member val Transitor:Transitor<Set<char>, NfaNode> = NoTransitor with get,set
+    member me.Transitor with get() = transitor
     member me.DirectTo with get() = directTo
 
     member me.EndStatus with get() = ends
 
     member me.SetToEndStatus (name:string) = 
         ends <- true
-        statname <- name
 
-    member me.SetTransitor (trans:Set<char> * NfaNode) =
-        me.Transitor <- Transitor(trans)
+    member me.SetTransitor (input:Opset<char>, dest:NfaNode) =
+        transitor <- Some(Transitor(input, dest))
 
     member me.AddDirectTo (n:NfaNode) =
         directTo <- directTo.Add n
@@ -74,7 +69,7 @@ and NFA =
     | Nfa of NfaNode * NfaNode
     | EmptyNfa
 
-module NfaModule =
+module NfaStatic =
 
     //生成一个NFA，包含两个节点，一个起始节点，一个终止节点，set为接受的字符集
     let cotr_nfa set = 

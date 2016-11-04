@@ -1,23 +1,17 @@
 ﻿namespace Lexer
+
+open System.Collections.Generic
 open Common
 
-type DFA (tfa:TFA) as this =
-    static let mutable map = new System.Collections.Generic.Dictionary<int, DFA>()
-    do map.Add(tfa.ID, this)
+type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
 
-    let id = tfa.ID
-    let isEnd = tfa.IsEnd
-    let transitors = 
-        [for trans in tfa.Transitors do
-            yield 
-                match trans with
-                | Transitor(set, dest) -> 
-                    Transitor(set, if map.ContainsKey(dest.ID) then map.[dest.ID] else DFA(dest))
-                | _ -> NoTransitor ]
+    let id = id
+    let isEnd = isEnd
+    let mutable transitors = transitors   
 
-
-    new (nfa:NFA) = DFA(TFA(nfa))
-    
+    static member FromNfa(nfa:NFA) = DFA.FromTfa(TFA(nfa))
+    static member FromTfa(tfa:TFA) = DFA.FromTfa(tfa, new Dictionary<int, DFA>())
+        
     member me.Transitors with get() = transitors
     member me.ID with get() = id
     member me.IsEnd with get() = isEnd
@@ -25,27 +19,60 @@ type DFA (tfa:TFA) as this =
         let mutable hasnext = false
         let mutable dest = me
         for trans in transitors do
-            match trans with
-                | Transitor(set, dst) -> 
-                    if set.Contains(c) then
-                        hasnext <- true
-                        dest <- dst
-                | _ -> ()
+            if trans.Input.Contains(c) then
+                hasnext <- true
+                dest <- trans.Dest
         hasnext, dest
 
-    static member FindEnds (dfas:DFA list) =
-        [for dfa in dfas do
-            if dfa.IsEnd then yield dfa]
+    member me.Match(input:string) = 
+        let len = DFA.match' 0 (s2l input) me true
+        { Value = input.Substring(0,len); Length = len }
 
+    member me.ToSerializerableStruct() =
+        let set = new HashSet<int>()    
+        let nodes = new List<DfaNode>()
+        me.ToDfaList(set, nodes)
+        { NodeList = nodes; StartID = me.ID }
 
-module DfaModule =
-    let rec matchone len inputlist (dfa:DFA) long =
+    static member FromSerializerableStruct(dfa:Dfa) =
+        let map = new Dictionary<int, DfaNode>();
+        for node in dfa.NodeList do
+            map.Add(node.ID, node)
+        DFA.FromDfaNode(dfa.StartID, map, new Dictionary<int, DFA>())
+
+    
+    static member private FromDfaNode(nodeID,nodeMap:Dictionary<int, DfaNode>,dfaMap:Dictionary<int, DFA>) = 
+            
+        let node = nodeMap.[nodeID]
+        if dfaMap.ContainsKey(node.ID) then
+            dfaMap.[node.ID] 
+        else    
+            let dfa = DFA(node.ID, node.IsEnd, [])
+            dfaMap.Add(dfa.ID, dfa)
+            dfa.SetTransitors(
+                [for v in node.Transitors do
+                    yield Transitor(v.Input, DFA.FromDfaNode(v.Dest, nodeMap, dfaMap))])
+            dfa
+        
+    static member private FromTfa(tfa:TFA, map:Dictionary<int, DFA>) = 
+        if map.ContainsKey(tfa.ID) then
+            map.[tfa.ID] 
+        else    
+            let dfa = DFA(tfa.ID, tfa.IsEnd, [])
+            map.Add(dfa.ID, dfa)
+            dfa.SetTransitors(
+                [for trans in tfa.Transitors do
+                    let set,dest = trans.Input,trans.Dest
+                    yield Transitor(set, DFA.FromTfa(dest, map))])
+            dfa
+    
+    static member private match' len inputlist (dfa:DFA) long =
         match inputlist with
         | input::tail  ->
             if long then
                 let hasnext, nextdfa = dfa.Transit input
                 if hasnext then
-                    matchone (len+1) tail nextdfa long
+                    DFA.match' (len+1) tail nextdfa long
                 else
                     if dfa.IsEnd then
                         len
@@ -57,7 +84,7 @@ module DfaModule =
                 else
                     let hasnext, nextdfa = dfa.Transit input
                     if hasnext then
-                        matchone (len+1) tail nextdfa long
+                        DFA.match' (len+1) tail nextdfa long
                     else
                         if dfa.IsEnd then
                             len
@@ -69,11 +96,29 @@ module DfaModule =
             else
                 0
 
+    static member private ToDfaList(set,(transes:Transitor<_,DFA> list), result : List<DfaNode>) =
+        match transes with
+        | [] -> ()
+        | trans::rest ->  
+            trans.Dest.ToDfaList(set, result)
+            DFA.ToDfaList(set, rest, result)
 
-    let matchlong (input:string) (dfa:DFA) = 
-        let len = matchone 0 (s2l input) dfa true
-        input.Substring(0,len),len
+    member private me.ToDfaList(set:HashSet<int>, result : List<DfaNode>) = 
+        if set.Contains(id) then
+            ()
+        else
+            let transList = new List<Transitor<char,int>>()
+            for trans in transitors do
+                transList.Add(Transitor(trans.Input, trans.Dest.ID))
+            let node = { ID = me.ID; IsEnd =me.IsEnd; Transitors = transList }
+            set.Add(node.ID) |> ignore
+            result.Add(node)
+            DFA.ToDfaList(set, me.Transitors, result)            
+            
+    member private me.SetTransitors(ts:Transitor<char, DFA> list) = transitors <- ts
 
-    let matchshort (input:string) (dfa:DFA) = 
-        let len = matchone 0 (s2l input) dfa false
-        input.Substring(0,len),len
+and MatchResult = { Value:string; Length:int }
+
+and DfaNode = { ID:int; IsEnd:bool; Transitors:Transitor<char,int> List }
+
+and Dfa = { StartID:int; NodeList:DfaNode List }

@@ -1,28 +1,32 @@
 ﻿namespace Lexer
 
 open Common
-open NfaModule
+open NfaStatic
 
 type Regex(regexStr:string) =
 
-    let cset = Set<char>([])
+    let cset = Opset<char>([])    
+    let l2set (l:list<_>) = Opset(l)
+    let c2set c = Opset<char>([c])
 
-    let rec set_addl l (set:Set<'a>) = 
+    let rec set_addl l (set:Opset<'a>) = 
         match l with
         | [] -> set
         | h::t -> set.Add(h) |> set_addl t
 
-    let set_add a (set:Set<'a>) = 
+    let set_add a (set:Opset<'a>) = 
         set.Add(a)
 
     let spec c = char(int c + 128)
     let despec c = char(int c - 128)
     let (|Special|_|) c = if c > '\128' then Some(despec c) else None
+
+    let titalset = ['\009';'\010';'\013'] @ ['\032'..'\126']
     
-    let diffset (set:Set<char>) = 
-        Set[for c in '\000'..'\127' do
-                if not (set.Contains c) then
-                    yield c]
+    let diffset (set:Opset<char>) = 
+        Opset [ for c in titalset do
+                    if not (set.Contains c) then
+                        yield c]
 
     let getspec = function
         | 'w' -> 
@@ -34,7 +38,7 @@ type Regex(regexStr:string) =
         | 'd' -> 
             set_addl ['0'..'9'] cset
 
-        | '.' -> diffset (Set['\n';'\r'])
+        | '.' -> diffset (Opset['\n';'\r'])
 
         | _ -> failwith "wrong special character"
 
@@ -133,8 +137,9 @@ type Regex(regexStr:string) =
 
     let dfa = 
         let nfa,_ = regex (s2l regexStr) EmptyNfa
-        let tfa = TFA(nfa)
-        DFA(tfa)
+        DFA.FromNfa(nfa)
         
-    member me.DFA with get() = dfa    
+    member me.DFA with get() = dfa
+
+    member me.Match(input:string) = dfa.Match(input)
 

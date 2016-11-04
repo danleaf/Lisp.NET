@@ -6,12 +6,15 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Web.Script.Serialization;
+using System.Xml;
+using Lexer;
 
 namespace mylisp
 {
     class Program
     {
-        public static Type CreateDynamicType()
+        public static void CreateDynamicType()
         {
             Type[] ctorParams = new Type[] {typeof(int),
 				   typeof(int)};
@@ -146,33 +149,93 @@ namespace mylisp
             writeStrIL.Emit(OpCodes.Ret);
 
 
-            Type t = pointTypeBld.CreateType();
+            Type type = pointTypeBld.CreateType();
 
             myAsmBuilder.Save("Point.dll");
-            return t;
-        }
 
-        public static void Main()
-        {
 
-            object[] ctorParams = new object[2];
+            object[] _params = new object[2];
 
             string myX = "1";
             string myY = "2";
 
             Console.WriteLine("---");
 
-            ctorParams[0] = Convert.ToInt32(myX);
-            ctorParams[1] = Convert.ToInt32(myY);
+            _params[0] = Convert.ToInt32(myX);
+            _params[1] = Convert.ToInt32(myY);
 
-            Type ptType = CreateDynamicType();
+            Type ptType = type;
 
-            object ptInstance = Activator.CreateInstance(ptType, ctorParams);
+            object ptInstance = Activator.CreateInstance(ptType, _params);
             ptType.InvokeMember("WritePoint",
                     BindingFlags.InvokeMethod,
                     null,
                     ptInstance,
                     new object[0]);
+
+        }
+
+        public static void Main()
+        {
+            Regex regex = new Regex(@"""([^""\r\n\\]*|\\.)*""");
+            var result = regex.Match(@"""qeqw\""qweqwe""sfsdf""");
+            Console.WriteLine(result.Value);
+            JavaScriptSerializer jss = new JavaScriptSerializer();
+            var data = regex.DFA.ToSerializerableStruct();
+            string str = DafToXml(data);
+            Console.WriteLine(str);
+        }
+
+        public static string DafToXml(Dfa dfa)
+        {
+            XmlDocument doc = new XmlDocument();
+            XmlElement root = doc.CreateElement("DFA");
+            root.SetAttribute("StartID", dfa.StartID.ToString());
+            doc.AppendChild(root);
+
+            XmlElement nodes = doc.CreateElement("DfaNodes");
+            root.AppendChild(nodes);
+
+            foreach(var node in dfa.NodeList)
+            {
+                XmlElement xnode = doc.CreateElement("DfaNode");
+                nodes.AppendChild(xnode);
+
+                xnode.SetAttribute("ID", node.ID.ToString());
+                xnode.SetAttribute("IsEnd", node.IsEnd.ToString());
+                XmlElement xtranses = doc.CreateElement("Transitors");
+                xnode.AppendChild(xtranses);
+
+                foreach(var trans in node.Transitors)
+                {
+                    XmlElement xtrans = doc.CreateElement("Transitor");
+                    xtranses.AppendChild(xtrans);
+
+                    xtrans.SetAttribute("Dest", trans.Dest.ToString());
+                    XmlElement input = doc.CreateElement("Inputs");
+                    xtrans.AppendChild(input);
+
+                    input.SetAttribute("Collection", "Opset");
+                    input.SetAttribute("Type", "Char");
+
+                    foreach (var v in trans.Input.ToList())
+                    {
+                        XmlElement xv = doc.CreateElement("Input");
+                        input.AppendChild(xv);
+                        var vs = v.ToString();
+                        switch (v)
+                        {
+                            case '\t': vs = @"\t"; break;
+                            case '\r': vs = @"\r"; break;
+                            case '\n': vs = @"\n"; break;
+                            case ' ': vs = @"\B"; break;
+                        }
+                        xv.SetAttribute("Value", vs);
+                    }
+                }
+            }
+            doc.Save("D:\\abc.xml");
+            return doc.InnerXml;  
         }
     }
 }
