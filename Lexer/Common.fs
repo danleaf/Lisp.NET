@@ -103,6 +103,13 @@ module Common =
         | x when x <= '9' && x >= '0' -> Some()
         | _ -> None
         
-
+    let FList2CList l = 
+        let ll = new System.Collections.Generic.List<_>()
+        for v in l do
+            ll.Add(v)
+        ll
         
+    let CList2FList (l:System.Collections.Generic.List<'a>) : 'a list = 
+        [for v in l do yield v]
+            
 

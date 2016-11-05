@@ -7,9 +7,12 @@ using System.Reflection.Emit;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Web.Script.Serialization;
+using Microsoft.FSharp.Collections;
 using System.Xml;
 using System.IO;
 using Lexer;
+
+using intlist = Microsoft.FSharp.Collections.FSharpList<int>;
 
 namespace mylisp
 {
@@ -178,27 +181,30 @@ namespace mylisp
 
         public static void Main()
         {
-            Regex regex = null;
-            var fileinfo = new FileInfo("d:/regex.json");
-            
-            if (!fileinfo.Exists)
-            {    
-                regex = new Regex("string",@"""([^""\r\n\\]*|\\.)*""");
-                var json = regex.ToJson();
-                var writer = fileinfo.CreateText();
-                writer.Write(json);
-                writer.Close();
-                Console.WriteLine("create new");
+            Lexer.Lexer lexer = null;
+            if (new FileInfo("d:/lexer.json").Exists)
+            {
+                lexer = Lexer.Lexer.LoadFromFile("d:/lexer.json");
+                Console.WriteLine("read old");
             }
             else
             {
-                var stream = fileinfo.OpenRead();
-                var json = new StreamReader(stream).ReadToEnd();
-                regex = Regex.FromJson(json);
-                Console.WriteLine("read old");
+                lexer = new Lexer.Lexer(
+                            new List<Regex>(){
+                                new Regex("string", @"""([^""\r\n\\]*|\\.)*"""),
+                                new Regex ("sepor",@";"),
+                                new Regex("identifier",@"[a-zA-Z_][\w]*"),
+                                new Regex("number",@"[0-9]+(\.[0-9]+)?"),
+                                new Regex("point",@"\."),
+                                new Regex("Error",@".")});
+                Console.WriteLine("create new");
+                lexer.SaveToFile("d:/lexer.json");
             }
-            var result = regex.Match(@"""qeqw\""qweqwe""sfsdf""");
-            Console.WriteLine(result.Value);
+
+            var result = lexer.GetTokenList(@"""qeqw\""qweqwe""sfsdf"";wewr;wer;""ew;r;3;4;234,4,to40430tf.sdfk48dldsf.d,f/sdf");
+            foreach (var r in result)
+                Console.WriteLine("{0}: {1}", r.Item1, r.Item2);
+            Console.ReadKey();
         }
 
         public static string DafToXml(Dfa dfa)

@@ -1,5 +1,9 @@
 ﻿namespace Lexer
 
+open System.IO
+open System.Web.Script.Serialization
+open Common
+
 type Lexer(regexs:Regex list) =
     let regexs = regexs
     
@@ -20,10 +24,43 @@ type Lexer(regexs:Regex list) =
             newresult |> matchall (str.Substring(len)) 
         else
             newresult
-
-    member me.GetTokenList(input:string) = 
-        matchall input []
+            
+    new (regexs:Regex System.Collections.Generic.List) = 
+        Lexer [for regex in regexs do yield regex]
 
     new (regexstrs:(string*string) list) = 
-        Lexer([for name,str in regexstrs do yield Regex(name, str)])
+        Lexer [for name,str in regexstrs do yield Regex(name, str)]
 
+    member me.GetTokenList(input:string) = 
+        let rs = matchall input []
+        let l = new System.Collections.Generic.List<string*string>()
+        for r in rs do l.Add(r)
+        l
+        
+    member me.ToJson() =
+        JavaScriptSerializer().Serialize(me.ToSerializerableStruct())
+
+    static member FromJson(json:string) = 
+        Lexer.FromSerializerableStruct(JavaScriptSerializer().Deserialize<LexerRecord>(json))
+
+    member me.ToSerializerableStruct() =
+        let data = { Regexes = new System.Collections.Generic.List<RegexRecord>() }
+        for regex in regexs do
+            data.Regexes.Add(regex.ToSerializerableStruct())
+        data
+
+    static member FromSerializerableStruct(data:LexerRecord) =
+        Lexer [for regex in data.Regexes do yield Regex.FromSerializerableStruct(regex)]
+
+    member me.SaveToFile(path:string) = 
+        use fs = new FileStream(path, FileMode.Create)
+        use writer = new StreamWriter(fs)
+        writer.Write(me.ToJson())
+
+    static member LoadFromFile(path:string) = 
+        use fs = new FileStream(path, FileMode.Open)
+        use reader = new StreamReader(fs)
+        Lexer.FromJson(reader.ReadToEnd())
+
+
+and [<CLIMutable>] LexerRecord = { Regexes:RegexRecord System.Collections.Generic.List }
