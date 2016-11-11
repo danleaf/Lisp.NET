@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lisp.NET", "Lisp.NET\Lisp.N
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lexer", "Lexer\Lexer.fsproj", "{59A9D7F0-6E2A-487C-BE67-D0C84D4CB81F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualLisp", "VisualLisp\VisualLisp.csproj", "{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LispProject", "LispProject\LispProject.csproj", "{7CA215B1-FE4D-4F53-A884-70AD13A42961}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{59A9D7F0-6E2A-487C-BE67-D0C84D4CB81F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59A9D7F0-6E2A-487C-BE67-D0C84D4CB81F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59A9D7F0-6E2A-487C-BE67-D0C84D4CB81F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CA215B1-FE4D-4F53-A884-70AD13A42961}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CA215B1-FE4D-4F53-A884-70AD13A42961}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CA215B1-FE4D-4F53-A884-70AD13A42961}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CA215B1-FE4D-4F53-A884-70AD13A42961}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
