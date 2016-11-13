@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="87A7B551-2144-4AD9-B3AA-1117EE0B5686" Version="1.0" Language="en-US" Publisher="Company" />
-    <DisplayName>VisualLisp</DisplayName>
-    <Description>Information about my package</Description>
+    <Identity Id="fb66ff3b-80dc-43f7-aa1e-f7f42a9fbc4f" Version="1.0" Language="en-US" Publisher="Company" />
+    <DisplayName>显示匹配的括号</DisplayName>
+    <Description>显示匹配的括号</Description>
   </Metadata>
   <Installation InstalledByMsi="false">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[12.0]" />

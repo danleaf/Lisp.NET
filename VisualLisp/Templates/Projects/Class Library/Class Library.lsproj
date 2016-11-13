@@ -36,7 +36,7 @@
 		<Reference Include="System.Xml.Linq" />
 	</ItemGroup>
 	<ItemGroup>
-		<Compile Include="Class1.clj">
+		<Compile Include="Class1.lsp">
       <SubType>Code</SubType>
 		</Compile>
 	</ItemGroup>

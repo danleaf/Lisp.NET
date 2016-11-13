@@ -7,9 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lisp.NET", "Lisp.NET\Lisp.N
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lexer", "Lexer\Lexer.fsproj", "{59A9D7F0-6E2A-487C-BE67-D0C84D4CB81F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualLisp", "VisualLisp\VisualLisp.csproj", "{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualLisp", "VisualLisp\VisualLisp.csproj", "{5F176123-270E-4835-84DE-28788181EA4D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LispProject", "LispProject\LispProject.csproj", "{7CA215B1-FE4D-4F53-A884-70AD13A42961}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{40232D4B-3C73-44D9-ACB2-477F2EB3AF9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "显示语句完成", "Samples\显示语句完成\显示语句完成.csproj", "{3963909D-078E-4DA0-AFB6-885F85229522}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "显示匹配的括号", "Samples\显示匹配的括号\显示匹配的括号.csproj", "{8740AB1C-4006-4ABE-8A41-EA3CB66BCA61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,16 +29,24 @@ Global
 		{59A9D7F0-6E2A-487C-BE67-D0C84D4CB81F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59A9D7F0-6E2A-487C-BE67-D0C84D4CB81F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59A9D7F0-6E2A-487C-BE67-D0C84D4CB81F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{08FA5270-AAAF-4C98-9B3F-0413DBB18E98}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CA215B1-FE4D-4F53-A884-70AD13A42961}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7CA215B1-FE4D-4F53-A884-70AD13A42961}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7CA215B1-FE4D-4F53-A884-70AD13A42961}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7CA215B1-FE4D-4F53-A884-70AD13A42961}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F176123-270E-4835-84DE-28788181EA4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F176123-270E-4835-84DE-28788181EA4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F176123-270E-4835-84DE-28788181EA4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F176123-270E-4835-84DE-28788181EA4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3963909D-078E-4DA0-AFB6-885F85229522}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3963909D-078E-4DA0-AFB6-885F85229522}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3963909D-078E-4DA0-AFB6-885F85229522}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3963909D-078E-4DA0-AFB6-885F85229522}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8740AB1C-4006-4ABE-8A41-EA3CB66BCA61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8740AB1C-4006-4ABE-8A41-EA3CB66BCA61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8740AB1C-4006-4ABE-8A41-EA3CB66BCA61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8740AB1C-4006-4ABE-8A41-EA3CB66BCA61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3963909D-078E-4DA0-AFB6-885F85229522} = {40232D4B-3C73-44D9-ACB2-477F2EB3AF9C}
+		{8740AB1C-4006-4ABE-8A41-EA3CB66BCA61} = {40232D4B-3C73-44D9-ACB2-477F2EB3AF9C}
 	EndGlobalSection
 EndGlobal
