@@ -1,50 +1,176 @@
-﻿using System;
+﻿using Dandan.VisualLisp.Language;
+using Dandan.VisualLisp.Project;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Package;
+using Microsoft.VisualStudio.Project;
+using Microsoft.VisualStudio.Shell;
+using System;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using System.ComponentModel.Design;
-using Microsoft.Win32;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell;
-using VisualLisp.Project;
 
-namespace VisualLisp
+namespace Dandan.VisualLisp
 {
-    [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
+    [ProvideProjectFactory(typeof(LispProjectFactory), "Visual Lisp",
+        @"Lisp Project Files (*.lsproj);*.lsproj", "lsproj", "lsproj",
+        @"Templates\Projects", LanguageVsTemplate = "Lisp")]
+    [ProvideService(typeof(LispLangService), ServiceName = LispLangService.LangName)]
+    [ProvideLanguageService(
+        typeof(LispLangService),
+        LispLangService.LangName,
+        100,
+        CodeSense = true,
+        DefaultToInsertSpaces = true,
+        EnableCommenting = true,
+        MatchBraces = true,
+        MatchBracesAtCaret = true, 
+        ShowCompletion = true,
+        ShowMatchingBrace = true,
+        QuickInfo = true,
+        AutoOutlining = true,
+        DebuggerLanguageExpressionEvaluator = GuidList.guidLuanguageString)]
 
-    [Guid(PACKAGE_GUID)]
+    [ProvideLanguageExtension(typeof(LispLangService), ".ls")]
+    [ProvideLanguageExtension(typeof(LispLangService), ".lss")]
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [DefaultRegistryRoot("Software\\Microsoft\\VisualStudio\\12.0")]
-    //[ProvideService(typeof(LispLanguage), ServiceName = LispLanguage.LANGUAGE_NAME)]
-    //[ProvideLanguageService(typeof(LispLanguage), LispLanguage.LANGUAGE_NAME, 100, CodeSense = true, DefaultToInsertSpaces = true, EnableCommenting = true, MatchBraces = true, MatchBracesAtCaret = true, ShowCompletion = true, ShowMatchingBrace = true, QuickInfo = true, AutoOutlining = true, DebuggerLanguageExpressionEvaluator = LispLanguage.LANGUAGE_GUID)]
-    //[ProvideLanguageExtension(typeof(LispLanguage), LispLanguage.LISP_FILE_EXTENSION)]
-    //[ProvideLanguageExtension(typeof(LispLanguage), LispLanguage.LISP_SCRIPT_FILE_EXTENSION)]
-    //[RegisterSnippetsAttribute(ClojureLanguage.CLOJURE_LANGUAGE_GUID, false, 131, ClojureLanguage.CLOJURE_LANGUAGE_NAME, @"CodeSnippets\SnippetsIndex.xml", @"CodeSnippets\Snippets\", @"CodeSnippets\Snippets\")]
-    //[ProvideObject(typeof(GeneralPropertyPageAdapter))]
-    [ProvideProjectFactory(typeof(LispProjectFactory), "Visual Lisp", "Lisp Project Files (*.lsproj);*.lsproj", "lsproj", "lsproj", @"Templates\Projects", LanguageVsTemplate = "Lisp")]
-    [ProvideProjectItem(typeof(LispProjectFactory), "Visual Lisp Items", @"Templates\ProjectItems\Lisp", 500)]
-    [ProvideMenuResource("Menus.ctmenu", 1)]
-    //[ProvideToolWindow(typeof(ReplToolWindow))]
-    //[RegisterExpressionEvaluator(typeof(ExpressionEvaluator), ClojureLanguage.CLOJURE_LANGUAGE_NAME, ExpressionEvaluator.CLOJURE_DEBUG_EXPRESSION_EVALUATOR_GUID, ExpressionEvaluator.MICROSOFT_VENDOR_GUID)]
-    //[ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)]
-    //[ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
-    public sealed class VisualLispPackage : Package
+    [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
+    [Guid(GuidList.guidPackageString)]
+    public sealed class VisualLispPackage : ProjectPackage, IOleComponent
     {
-        public const string PACKAGE_GUID = "87A7B551-2144-4AD9-B3AA-1117EE0B5686";
+        private uint m_componentID;
 
         public VisualLispPackage()
         {
-            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
         }
 
         protected override void Initialize()
         {
-            Debug.WriteLine (string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             base.Initialize();
 
-            RegisterProjectFactory(new LispProjectFactory(this));
+            this.RegisterProjectFactory(new LispProjectFactory(this));
+            this.RegisterLangugeService(new LispLangService());
         }
+
+        private void RegisterLangugeService(LispLangService langService)
+        {
+            // Proffer the service.
+            IServiceContainer serviceContainer = this as IServiceContainer;
+            langService.SetSite(this);
+            serviceContainer.AddService(typeof(LispLangService), langService, true);
+
+            // Register a timer to call our language service during
+            // idle periods.
+            IOleComponentManager mgr = GetService(typeof(SOleComponentManager))
+                                       as IOleComponentManager;
+            if (m_componentID == 0 && mgr != null)
+            {
+                OLECRINFO[] crinfo = new OLECRINFO[1];
+                crinfo[0].cbSize = (uint)Marshal.SizeOf(typeof(OLECRINFO));
+                crinfo[0].grfcrf = (uint)_OLECRF.olecrfNeedIdleTime |
+                                              (uint)_OLECRF.olecrfNeedPeriodicIdleTime;
+                crinfo[0].grfcadvf = (uint)_OLECADVF.olecadvfModal |
+                                              (uint)_OLECADVF.olecadvfRedrawOff |
+                                              (uint)_OLECADVF.olecadvfWarningsOff;
+                crinfo[0].uIdleTimeInterval = 1000;
+                int hr = mgr.FRegisterComponent(this, crinfo, out m_componentID);
+            }
+        }
+
+        public override string ProductUserContext
+        {
+            get { return "LispProj"; }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (m_componentID != 0)
+            {
+                IOleComponentManager mgr = GetService(typeof(SOleComponentManager))
+                                           as IOleComponentManager;
+                if (mgr != null)
+                {
+                    int hr = mgr.FRevokeComponent(m_componentID);
+                }
+                m_componentID = 0;
+            }
+
+            base.Dispose(disposing);
+        }
+
+
+        #region IOleComponent Members
+
+        public int FDoIdle(uint grfidlef)
+        {
+            bool bPeriodic = (grfidlef & (uint)_OLEIDLEF.oleidlefPeriodic) != 0;
+            // Use typeof(TestLanguageService) because we need to
+            // reference the GUID for our language service.
+            LanguageService service = GetService(typeof(LispLangService))
+                                      as LanguageService;
+            if (service != null)
+            {
+                service.OnIdle(bPeriodic);
+            }
+            return 0;
+        }
+
+        public int FContinueMessageLoop(uint uReason,
+                                        IntPtr pvLoopData,
+                                        MSG[] pMsgPeeked)
+        {
+            return 1;
+        }
+
+        public int FPreTranslateMessage(MSG[] pMsg)
+        {
+            return 0;
+        }
+
+        public int FQueryTerminate(int fPromptUser)
+        {
+            return 1;
+        }
+
+        public int FReserved1(uint dwReserved,
+                              uint message,
+                              IntPtr wParam,
+                              IntPtr lParam)
+        {
+            return 1;
+        }
+
+        public IntPtr HwndGetWindow(uint dwWhich, uint dwReserved)
+        {
+            return IntPtr.Zero;
+        }
+
+        public void OnActivationChange(IOleComponent pic,
+                                       int fSameComponent,
+                                       OLECRINFO[] pcrinfo,
+                                       int fHostIsActivating,
+                                       OLECHOSTINFO[] pchostinfo,
+                                       uint dwReserved)
+        {
+        }
+
+        public void OnAppActivate(int fActive, uint dwOtherThreadID)
+        {
+        }
+
+        public void OnEnterState(uint uStateID, int fEnter)
+        {
+        }
+
+        public void OnLoseActivation()
+        {
+        }
+
+        public void Terminate()
+        {
+        }
+
+        #endregion
+
     }
 }

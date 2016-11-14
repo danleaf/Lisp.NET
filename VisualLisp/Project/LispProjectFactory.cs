@@ -1,28 +1,26 @@
 ﻿using Microsoft.VisualStudio.Project;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell;
-using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
-namespace VisualLisp.Project
+namespace Dandan.VisualLisp.Project
 {
-    [Guid("FE5C2CE7-D0C1-4F92-9C3A-6A259CB86816")]
-    public class LispProjectFactory : ProjectFactory
+    [Guid(GuidList.guidProjectFactoryString)]
+    class LispProjectFactory : ProjectFactory
     {
-        private Package package;
+        VisualLispPackage package;
 
-        public LispProjectFactory(Package package)
+        public LispProjectFactory(VisualLispPackage package)
             : base(package)
         {
             this.package = package;
         }
+
         protected override ProjectNode CreateProject()
         {
             LispProjectNode project = new LispProjectNode(this.package);
-            project.SetSite((IServiceProvider)((System.IServiceProvider)this.package).GetService(typeof(IServiceProvider)));
+
+            project.SetSite((IOleServiceProvider)((IServiceProvider)this.package).GetService(typeof(IOleServiceProvider)));
             return project;
         }
     }

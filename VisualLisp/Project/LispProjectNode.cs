@@ -1,175 +1,60 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Project;
+using System;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using EnvDTE;
-using Microsoft.VisualStudio.Project;
-using Microsoft.VisualStudio.Project.Automation;
-using Microsoft.VisualStudio.Shell;
-using VSLangProj;
 
-namespace VisualLisp.Project
+namespace Dandan.VisualLisp.Project
 {
-    [Guid("16065A00-E5D1-45A7-95F5-C46B2BDBB833")]
     public class LispProjectNode : ProjectNode
     {
-        internal enum MyCustomProjectImageName
-        {
-            Project = 0,
-        }
+        private VisualLispPackage package;
 
-        internal const string ProjectTypeName = "Lisp";
-
-        private Package package;
-        internal static int imageOffset;
-        private static ImageList imageList;
-        private VSProject vsProject;
-
-        public Package Package
-        {
-            get { return package; }
-        }
-
-        static LispProjectNode()
-        {
-            imageList = Microsoft.VisualStudio.Project.Utilities.GetImageList(typeof(LispProjectNode).Assembly.GetManifestResourceStream("VisualLisp.Resources.ImageList.bmp"));
-        }
-        
-        public LispProjectNode(Package package)
+        public LispProjectNode(VisualLispPackage package)
         {
             this.package = package;
 
-            InitializeImageList();
+            imageIndex = this.ImageHandler.ImageList.Images.Count;
 
-            CanProjectDeleteItems = true;
-        }
-        public static ImageList ImageList
-        {
-            get { return imageList; }
-            set { imageList = value; }
-        }
-
-        protected internal VSProject VSProject
-        {
-            get
+            foreach (Image img in imageList.Images)
             {
-                if (vsProject == null)
-                {
-                    vsProject = new OAVSProject(this);
-                }
-
-                return vsProject;
+                this.ImageHandler.AddImage(img);
             }
         }
-
-        public References References { get { return VSProject.References; } }
-
         public override Guid ProjectGuid
         {
             get { return typeof(LispProjectFactory).GUID; }
         }
-
-        public override bool IsCodeFile(string fileName)
-        {
-            return fileName.ToLower().EndsWith(".lsp") || fileName.ToLower().EndsWith(".lss");
-        }
-
         public override string ProjectType
         {
-            get { return ProjectTypeName; }
+            get { return "LispProject"; }
         }
-
-        public override int ImageIndex
-        {
-            get { return imageOffset + (int)MyCustomProjectImageName.Project; }
-        }
-
-        public override object GetAutomationObject()
-        {
-            return new OALispProject(this);
-        }
-
-        public override FileNode CreateFileNode(ProjectElement item)
-        {
-            LispFileNode node = new LispFileNode(this, item);
-
-            node.OleServiceProvider.AddService(typeof(EnvDTE.Project), new OleServiceProvider.ServiceCreatorCallback(CreateServices), false);
-            node.OleServiceProvider.AddService(typeof(ProjectItem), node.ServiceCreator, false);
-            node.OleServiceProvider.AddService(typeof(VSProject), new OleServiceProvider.ServiceCreatorCallback(CreateServices), false);
-
-            return node;
-        }
-
-        //protected override Guid[] GetConfigurationIndependentPropertyPages()
-        //{
-        //    Guid[] result = new Guid[1];
-        //    result[0] = typeof(GeneralPropertyPage).GUID;
-        //    return result;
-        //}
-
-        //protected override Guid[] GetPriorityProjectDesignerPages()
-        //{
-        //    Guid[] result = new Guid[1];
-        //    result[0] = typeof(GeneralPropertyPage).GUID;
-        //    return result;
-        //}
 
         public override void AddFileFromTemplate(string source, string target)
         {
-            if (!File.Exists(source))
-            {
-                throw new FileNotFoundException(string.Format("Template file not found: {0}", source));
-            }
+            string nameSpace = this.FileTemplateProcessor.GetFileNamespace(target, this);
+            string className = Path.GetFileNameWithoutExtension(target);
 
-            string projectPath = Path.GetDirectoryName(GetMkDocument());
-            string relativePath = Path.GetDirectoryName(target).Substring(projectPath.Length);
+            this.FileTemplateProcessor.AddReplace("$namespace$", nameSpace);
+            this.FileTemplateProcessor.AddReplace("$classname$", className);
 
-            string fileNamespace = relativePath.Replace("\\", ".");
-            fileNamespace = fileNamespace.TrimStart(new[] { '.' });
-            if (!string.IsNullOrEmpty(fileNamespace)) fileNamespace += ".";
-            fileNamespace += Path.GetFileNameWithoutExtension(target);
-
-            FileTemplateProcessor.AddReplace("%namespace%", fileNamespace);
-
-            try
-            {
-                FileTemplateProcessor.UntokenFile(source, target);
-                FileTemplateProcessor.Reset();
-            }
-            catch (Exception e)
-            {
-                throw new FileLoadException("Failed to add template file to project", target, e);
-            }
+            this.FileTemplateProcessor.UntokenFile(source, target);
+            this.FileTemplateProcessor.Reset();
         }
-        
-        private void InitializeImageList()
+
+        private static ImageList imageList;
+
+        static LispProjectNode()
         {
-            imageOffset = ImageHandler.ImageList.Images.Count;
-
-            foreach (Image img in ImageList.Images)
-            {
-                ImageHandler.AddImage(img);
-            }
+            imageList = Utilities.GetImageList(
+                typeof(LispProjectNode).Assembly
+                .GetManifestResourceStream("Dandan.VisualLisp.Resources.ImageList.bmp"));
         }
 
-        private object CreateServices(Type serviceType)
+        internal static int imageIndex;
+        public override int ImageIndex
         {
-            object service = null;
-            if (typeof(VSProject) == serviceType)
-            {
-                service = VSProject;
-            }
-            else if (typeof(EnvDTE.Project) == serviceType)
-            {
-                service = GetAutomationObject();
-            }
-            return service;
+            get { return imageIndex; }
         }
-
-        //protected override ConfigProvider CreateConfigProvider()
-        //{
-        //    return new ClojureConfigProvider(this);
-        //}
     }
 }

@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("VisualLisp")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Company")]
+[assembly: AssemblyCompany("Dandan")]
 [assembly: AssemblyProduct("VisualLisp")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
