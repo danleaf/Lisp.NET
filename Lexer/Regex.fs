@@ -146,6 +146,7 @@ type Regex(name:string, dfa:DFA) =
     member me.Name with get() = name
 
     member me.Match(input:string) = dfa.Match(input)
+    member me.Match(input:char list) = dfa.Match(input)
 
     member me.ToJson() =
         JavaScriptSerializer().Serialize(me.ToSerializerableStruct())

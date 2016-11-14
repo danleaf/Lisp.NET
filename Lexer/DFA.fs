@@ -26,8 +26,11 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
         hasnext, dest
 
     member me.Match(input:string) = 
-        let len = DFA.match' 0 (s2l input) me true
+        let len, _ = DFA.match' 0 (s2l input) me true
         { Value = input.Substring(0,len); Length = len }
+
+    member me.Match(input:char list) = 
+        DFA.match' 0 input me true
 
     member me.ToJson() =
         let data = me.ToSerializerableStruct()
@@ -74,7 +77,7 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
                     yield Transitor(set, DFA.FromTfa(dest, map))])
             dfa
     
-    static member private match' len inputlist (dfa:DFA) long =
+    static member private match' len inputlist (dfa:DFA) long : int * char list =
         match inputlist with
         | input::tail  ->
             if long then
@@ -83,26 +86,26 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
                     DFA.match' (len+1) tail nextdfa long
                 else
                     if dfa.IsEnd then
-                        len
+                        len, inputlist
                     else
-                        0
+                        0, []
             else
                 if dfa.IsEnd then
-                    len
+                    len, inputlist
                 else
                     let hasnext, nextdfa = dfa.Transit input
                     if hasnext then
                         DFA.match' (len+1) tail nextdfa long
                     else
                         if dfa.IsEnd then
-                            len
+                            len, inputlist
                         else
-                            0
+                            0, []
         | [] -> 
             if dfa.IsEnd then
-                len
+                len, []
             else
-                0
+                0, []
 
     static member private ToDfaList(set,(transes:Transitor<_,DFA> list), result : List<DfaNode>) =
         match transes with

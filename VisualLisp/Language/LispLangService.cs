@@ -1,9 +1,11 @@
-﻿using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
+﻿
+using Lexer;
+using Microsoft.FSharp.Collections;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Package;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
-using System.ComponentModel.Design;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Dandan.VisualLisp.Language
@@ -12,7 +14,7 @@ namespace Dandan.VisualLisp.Language
     class LispLangService : LanguageService
     {
         public const string LangName = "Lisp";
-        LanguagePreferences preferences = null; 
+        LanguagePreferences preferences = null;
         LispScanner scanner;
 
         public override string GetFormatFilterList()
@@ -30,21 +32,21 @@ namespace Dandan.VisualLisp.Language
                 {
                     preferences.Init();
 
-                    preferences.EnableCodeSense = true;
-                    preferences.EnableMatchBraces = true;
-                    preferences.EnableCommenting = true;
-                    preferences.EnableShowMatchingBrace = true;
-                    preferences.EnableMatchBracesAtCaret = true;
-                    preferences.HighlightMatchingBraceFlags = _HighlightMatchingBraceFlags.HMB_USERECTANGLEBRACES;
-                    preferences.LineNumbers = true;
-                    preferences.MaxErrorMessages = 100;
-                    preferences.AutoOutlining = false;
-                    preferences.MaxRegionTime = 2000;
-                    preferences.ShowNavigationBar = true;
+                    //preferences.EnableCodeSense = true;
+                    //preferences.EnableMatchBraces = true;
+                    //preferences.EnableCommenting = true;
+                    //preferences.EnableShowMatchingBrace = true;
+                    //preferences.EnableMatchBracesAtCaret = true;
+                    //preferences.HighlightMatchingBraceFlags = _HighlightMatchingBraceFlags.HMB_USERECTANGLEBRACES;
+                    //preferences.LineNumbers = true;
+                    //preferences.MaxErrorMessages = 100;
+                    //preferences.AutoOutlining = false;
+                    //preferences.MaxRegionTime = 2000;
+                    //preferences.ShowNavigationBar = true;
 
-                    preferences.AutoListMembers = true;
-                    preferences.EnableQuickInfo = true;
-                    preferences.ParameterInformation = true;
+                    //preferences.AutoListMembers = true;
+                    //preferences.EnableQuickInfo = true;
+                    //preferences.ParameterInformation = true;
                 }
             }
 
@@ -74,94 +76,64 @@ namespace Dandan.VisualLisp.Language
     internal class LispScanner : IScanner
     {
         private IVsTextBuffer buffer;
-        string source;
+        private int offset;
+        private FSharpList<char> source = FSharpList<char>.Empty;
+
+        Lexer.Lexer lexer = new Lexer.Lexer(
+                            new List<Regex>(){
+                                new Regex("delimiter", @"[\[\]{}\(\)]"),
+                                new Regex("keyword", @"ns|class|defn|filed"),
+                                new Regex("string", @"""([^""\r\n\\]*|\\.)*"""),
+                                new Regex("errstring", @"""([^""\r\n\\]*|\\.)*"),
+                                new Regex ("sepor",@";"),
+                                new Regex("line", @"\r?\n"),
+                                new Regex("blank", @"[ \t]+"),
+                                new Regex("identifier",@"[a-zA-Z_][\w]*"),
+                                new Regex("number",@"[0-9]+(\.[0-9]+)?"),
+                                new Regex("point",@"\."),
+                                new Regex("Error",@".")});
 
         public LispScanner(IVsTextBuffer buffer)
         {
             this.buffer = buffer;
         }
 
-        private string m_line;
-        private int m_offset;
-        private string m_source;
 
-
-        /////////////////////////////////////////////////////
-        // Enumerations
-
-        private enum ParseState
-        {
-            InText = 0,
-            InQuotes = 1,
-            InComment = 2
-        }
-
-        /////////////////////////////////////////////////////
-        // Private methods
-
-        private bool GetNextToken(int startIndex,
-                                 TokenInfo tokenInfo,
-                                 ref int state)
-        {
-            bool bFoundToken = false;
-            int endIndex = -1;
-            int index = startIndex;
-            if (index < m_source.Length)
-            {
-                if (state == (int)ParseState.InQuotes)
-                {
-                    // Find end quote. If found, set state to InText
-                    // and return the quoted string as a single token.
-                    // Otherwise, return the string to the end of the line
-                    // and keep the same state.
-                }
-                else if (state == (int)ParseState.InComment)
-                {
-                    // Find end of comment. If found, set state to InText
-                    // and return the comment as a single token.
-                    // Otherwise, return the comment to the end of the line
-                    // and keep the same state.
-                }
-                else
-                {
-                    // Parse the token starting at index, returning the
-                    // token's start and end index in tokenInfo, along with
-                    // the token's type and color to use.
-                    // If the token is a quoted string and the string continues
-                    // on the next line, set state to InQuotes.
-                    // If the token is a comment and the comment continues
-                    // on the next line, set state to InComment.
-                    bFoundToken = true;
-                }
-            }
-            return bFoundToken;
-        }
-
-        /////////////////////////////////////////////////////
-        // IScanner methods
-
-        public bool ScanTokenAndProvideInfoAboutIt(TokenInfo tokenInfo,
-                                                   ref int state)
-        {
-            bool bFound = false;
-            if (tokenInfo != null)
-            {
-                bFound = GetNextToken(m_offset, tokenInfo, ref state);
-                if (bFound)
-                {
-                    m_offset = tokenInfo.EndIndex + 1;
-                }
-            }
-            return false;
-            return bFound;
-        }
 
         public void SetSource(string source, int offset)
         {
-            m_offset = offset;
-            m_source = source;
+            this.source = ListModule.OfArray(source.Substring(offset).ToCharArray());
+            this.offset = offset;
         }
 
+        public bool ScanTokenAndProvideInfoAboutIt(TokenInfo tokenInfo, ref int state)
+        {
+            if (tokenInfo == null)
+                return false;
+
+            var ret = lexer.GetNextToken(source);
+            if (ret.Length == 0)
+            {
+                return false;
+            }
+            else
+            {
+                tokenInfo.StartIndex = offset;
+                tokenInfo.EndIndex = offset + ret.Length - 1;
+                tokenInfo.Type = TokenType.Keyword;
+                if (ret.Token == "string" || ret.Token == "errstring")
+                    tokenInfo.Color = TokenColor.String;
+                else if (ret.Token == "number")
+                    tokenInfo.Color = TokenColor.Number;
+                else if (ret.Token == "keyword")
+                    tokenInfo.Color = TokenColor.Keyword;
+                else
+                    tokenInfo.Color = TokenColor.Text;
+                offset += ret.Length;
+                source = ret.Rest;
+                return true;
+            }
+        }
     }
 
     internal class LispAuthoringScope : AuthoringScope

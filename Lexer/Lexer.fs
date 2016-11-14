@@ -36,6 +36,19 @@ type Lexer(regexs:Regex list) =
         let l = new System.Collections.Generic.List<string*string>()
         for r in rs do l.Add(r)
         l
+
+    member private me.GetNextToken(input:char list, regexs:Regex list) = 
+        match regexs with
+        | [] -> { Token = "Unkown"; Length = 0; Rest = [] }
+        | reg::tail -> 
+            let len, rest = reg.Match input
+            if len > 0 then
+                { Token = reg.Name; Length = len; Rest = rest }
+            else
+                me.GetNextToken(input, tail)
+
+    member me.GetNextToken(input:char list) = 
+            me.GetNextToken(input, regexs)
         
     member me.ToJson() =
         JavaScriptSerializer().Serialize(me.ToSerializerableStruct())
@@ -64,3 +77,4 @@ type Lexer(regexs:Regex list) =
 
 
 and [<CLIMutable>] LexerRecord = { Regexes:RegexRecord System.Collections.Generic.List }
+and MatchResult2 = { Token:string; Length:int; Rest:char list }
