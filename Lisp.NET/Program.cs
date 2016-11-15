@@ -18,6 +18,29 @@ namespace mylisp
 {
     class Program
     {
+        public static void Main()
+        {
+            var lexer = new Lexer.Lexer(new List<Regex>(){
+                                new Regex("blank", @"[\t ]+"),
+                                new Regex("line", @"\r?\n"),
+                                new Regex("open", @"[\(\[\{]"),
+                                new Regex("close", @"[\)\]\}]"),
+                                new Regex("string", @"""([^""\\]*|\\.)*"""),
+                                new Regex("number",@"[0-9]+(\.[0-9]+)?"),
+                                new Regex("identifier",@"[^\n\t \r\)\(\]\[\}\{:.,;'""`]+"),
+                                new Regex("point",@"\."),
+                                new Regex("Error",@".")});
+
+            var result = lexer.GetTokenList(@"
+            (ns Simple)""sdfsf
+sdfsfd""
+            (def *abs* 10)
+            (println ""%n %s"" 1.90 ""Hello World"")");
+            foreach (var r in result)
+                Console.WriteLine("{0}: {1}", r.Item1, r.Item2);
+            Console.ReadKey();
+        }
+
         public static void CreateDynamicType()
         {
             Type[] ctorParams = new Type[] {typeof(int),
@@ -33,7 +56,7 @@ namespace mylisp
 
             ModuleBuilder pointModule = myAsmBuilder.DefineDynamicModule("PointModule",
                                          "Point.dll");
-           
+
             TypeBuilder pointTypeBld = pointModule.DefineType("Lisp.Point",
                                        TypeAttributes.Public);
 
@@ -179,35 +202,7 @@ namespace mylisp
 
         }
 
-        public static void Main()
-        {
-            Lexer.Lexer lexer = null;
-            if (new FileInfo("d:/lexer.json").Exists)
-            {
-                lexer = Lexer.Lexer.LoadFromFile("d:/lexer.json");
-                Console.WriteLine("read old");
-            }
-            else
-            {
-                lexer = new Lexer.Lexer(
-                            new List<Regex>(){
-                                new Regex("string", @"""([^""\r\n\\]*|\\.)*"""),
-                                new Regex ("sepor",@";"),
-                                new Regex("identifier",@"[a-zA-Z_][\w]*"),
-                                new Regex("number",@"[0-9]+(\.[0-9]+)?"),
-                                new Regex("point",@"\."),
-                                new Regex("Error",@".")});
-                Console.WriteLine("create new");
-                lexer.SaveToFile("d:/lexer.json");
-            }
-
-            var result = lexer.GetTokenList(@"""qeqw\""qweqwe""sfsdf"";wewr;wer;""ew;r;3;4;234,4,to40430tf.sdfk48dldsf.d,f/sdf");
-            foreach (var r in result)
-                Console.WriteLine("{0}: {1}", r.Item1, r.Item2);
-            Console.ReadKey();
-        }
-
-        public static string DafToXml(Dfa dfa)
+        public static string DafToXml(DfaRecord dfa)
         {
             XmlDocument doc = new XmlDocument();
             XmlElement root = doc.CreateElement("DFA");
@@ -217,7 +212,7 @@ namespace mylisp
             XmlElement nodes = doc.CreateElement("DfaNodes");
             root.AppendChild(nodes);
 
-            foreach(var node in dfa.NodeList)
+            foreach (var node in dfa.NodeList)
             {
                 XmlElement xnode = doc.CreateElement("DfaNode");
                 nodes.AppendChild(xnode);
@@ -227,7 +222,7 @@ namespace mylisp
                 XmlElement xtranses = doc.CreateElement("Transitors");
                 xnode.AppendChild(xtranses);
 
-                foreach(var trans in node.Transitors)
+                foreach (var trans in node.Transitors)
                 {
                     XmlElement xtrans = doc.CreateElement("Transitor");
                     xtranses.AppendChild(xtrans);
@@ -256,7 +251,7 @@ namespace mylisp
                 }
             }
             doc.Save("D:\\abc.xml");
-            return doc.InnerXml;  
+            return doc.InnerXml;
         }
     }
 }

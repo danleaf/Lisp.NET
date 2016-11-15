@@ -1,7 +1,5 @@
 ﻿namespace Lexer
 
-open System.Collections.Generic
-
 //可以进行运算的集合
 type Opset<'t when 't:comparison>(set:'t Set) =
     let rawset = set
@@ -53,8 +51,8 @@ type Opset<'t when 't:comparison>(set:'t Set) =
     member me.Intersection (s:Opset<'t>) =
         Opset.Intersection(me, s)
         
-    member me.ToList () : List<'t> =
-        let l = new List<'t>()
+    member me.ToList () : System.Collections.Generic.List<'t> =
+        let l = new System.Collections.Generic.List<'t>()
         for v in rawset do
             l.Add(v)
         l
@@ -64,7 +62,7 @@ type Transitor<'input,'dest when 'input:comparison> (input:Opset<'input>, dest:'
     let input = input
     let dest = dest
 
-    static member cotr (input:'input List, dest:'dest) =
+    static member cotr (input:'input System.Collections.Generic.List, dest:'dest) =
         let mutable set = Opset<'input>[]
         for v in input do
             set <- set.Add(v)

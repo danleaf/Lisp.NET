@@ -1,7 +1,5 @@
 ﻿namespace Lexer
 
-open System.Collections.Generic
-
 type Transition(input:Opset<char>,dst:Opset<int>) =
     let input = input
     let dst = dst
@@ -23,7 +21,7 @@ type Transition(input:Opset<char>,dst:Opset<int>) =
 
     //将状态转移列表中相同目的的合并到一起
     static member Single (rs:Transition list) =
-        let dict = new Dictionary<Opset<int>,Opset<char>>()
+        let dict = new System.Collections.Generic.Dictionary<Opset<int>,Opset<char>>()
         for r in rs do
             if dict.ContainsKey r.Dest then
                 let input = dict.[r.Dest]
@@ -53,7 +51,7 @@ type Transition(input:Opset<char>,dst:Opset<int>) =
                 if not trans2.IsEmpty then yield trans2 ] @ Transition.join(rest, trans3)
         | [] -> [if not trans.IsEmpty then yield trans]
 
-    static member Join (rs:Transition list, r:Transition)  =
+    static member Join (rs:Transition list, r:Transition) =
         Transition.join(rs,r) |> Transition.Single
         
     member me.JoinTo (rs:Transition list)  =
@@ -108,7 +106,7 @@ type TFA(nfaNodeIdSet:Opset<int>, nfaEndNodeId:int) as this =
 
 and TfaStatic() =
     static let mutable tfaNodeIdx = 0
-    static let mutable nodeMap = new Dictionary<Opset<int>, TFA>()
+    static let mutable nodeMap = new System.Collections.Generic.Dictionary<Opset<int>, TFA>()
     
     static member AddTfaNode (nfaNodeSet:Opset<int>, node:TFA) = 
         let idx = tfaNodeIdx

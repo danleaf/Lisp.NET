@@ -1,6 +1,5 @@
 ﻿namespace Lexer
 
-open System.Collections.Generic
 open System.Web.Script.Serialization
 open Common
 
@@ -11,7 +10,7 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
     let mutable transitors = transitors   
 
     static member FromNfa(nfa:NFA) = DFA.FromTfa(TFA(nfa))
-    static member FromTfa(tfa:TFA) = DFA.FromTfa(tfa, new Dictionary<int, DFA>())
+    static member FromTfa(tfa:TFA) = DFA.FromTfa(tfa, new System.Collections.Generic.Dictionary<int, DFA>())
         
     member me.Transitors with get() = transitors
     member me.ID with get() = id
@@ -37,22 +36,22 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
         JavaScriptSerializer().Serialize(data)
 
     static member FromJson(json:string) =
-        let data = JavaScriptSerializer().Deserialize<Dfa>(json)
+        let data = JavaScriptSerializer().Deserialize<DfaRecord>(json)
         DFA.FromSerializerableStruct(data)
 
     member me.ToSerializerableStruct() =
-        let set = new HashSet<int>()    
-        let nodes = new List<DfaNode>()
-        me.ToDfaList(set, nodes)
+        let set = new System.Collections.Generic.HashSet<int>()    
+        let nodes = new System.Collections.Generic.List<DfaRecordNode>()
+        me.ToDfaRecordList(set, nodes)
         { NodeList = nodes; StartID = me.ID }
 
-    static member FromSerializerableStruct(dfa:Dfa) =
-        let map = new Dictionary<int, DfaNode>();
+    static member FromSerializerableStruct(dfa:DfaRecord) =
+        let map = new System.Collections.Generic.Dictionary<int, DfaRecordNode>();
         for node in dfa.NodeList do
             map.Add(node.ID, node)
-        DFA.FromDfaNode(dfa.StartID, map, new Dictionary<int, DFA>())
+        DFA.FromDfaRecordNode(dfa.StartID, map, new System.Collections.Generic.Dictionary<int, DFA>())
     
-    static member private FromDfaNode(nodeID,nodeMap:Dictionary<int, DfaNode>,dfaMap:Dictionary<int, DFA>) = 
+    static member private FromDfaRecordNode(nodeID,nodeMap:System.Collections.Generic.Dictionary<int, DfaRecordNode>,dfaMap:System.Collections.Generic.Dictionary<int, DFA>) = 
             
         let node = nodeMap.[nodeID]
         if dfaMap.ContainsKey(node.ID) then
@@ -62,10 +61,10 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
             dfaMap.Add(dfa.ID, dfa)
             dfa.SetTransitors(
                 [for v in node.Transitors do
-                    yield Transitor.cotr(v.Input, DFA.FromDfaNode(v.Dest, nodeMap, dfaMap))])
+                    yield Transitor.cotr(v.Input, DFA.FromDfaRecordNode(v.Dest, nodeMap, dfaMap))])
             dfa
         
-    static member private FromTfa(tfa:TFA, map:Dictionary<int, DFA>) = 
+    static member private FromTfa(tfa:TFA, map:System.Collections.Generic.Dictionary<int, DFA>) = 
         if map.ContainsKey(tfa.ID) then
             map.[tfa.ID] 
         else    
@@ -107,37 +106,37 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
             else
                 0, []
 
-    static member private ToDfaList(set,(transes:Transitor<_,DFA> list), result : List<DfaNode>) =
+    static member private ToDfaRecordList(set,(transes:Transitor<_,DFA> list), result : System.Collections.Generic.List<DfaRecordNode>) =
         match transes with
         | [] -> ()
         | trans::rest ->  
-            trans.Dest.ToDfaList(set, result)
-            DFA.ToDfaList(set, rest, result)
+            trans.Dest.ToDfaRecordList(set, result)
+            DFA.ToDfaRecordList(set, rest, result)
 
-    member private me.ToDfaList(set:HashSet<int>, result : List<DfaNode>) = 
+    member private me.ToDfaRecordList(set:System.Collections.Generic.HashSet<int>, result : System.Collections.Generic.List<DfaRecordNode>) = 
         if set.Contains(id) then
             ()
         else
-            let transList = new List<NodeTransitor<char,int>>()
+            let transList = new System.Collections.Generic.List<TransitorRecord<char,int>>()
             for trans in transitors do
-                transList.Add(NodeTransitor.cotr(trans.Input, trans.Dest.ID))
+                transList.Add(TransitorRecord.cotr(trans.Input, trans.Dest.ID))
             let node = { ID = me.ID; IsEnd =me.IsEnd; Transitors = transList }
             set.Add(node.ID) |> ignore
             result.Add(node)
-            DFA.ToDfaList(set, me.Transitors, result)            
+            DFA.ToDfaRecordList(set, me.Transitors, result)            
             
     member private me.SetTransitors(ts:Transitor<char, DFA> list) = transitors <- ts
 
 and MatchResult = { Value:string; Length:int }
 
-and [<CLIMutable>] DfaNode = { ID:int; IsEnd:bool; Transitors:NodeTransitor<char,int> List }
+and [<CLIMutable>] DfaRecordNode = { ID:int; IsEnd:bool; Transitors:TransitorRecord<char,int> System.Collections.Generic.List }
 
-and [<CLIMutable>] Dfa = { StartID:int; NodeList:DfaNode List }
+and [<CLIMutable>] DfaRecord = { StartID:int; NodeList:DfaRecordNode System.Collections.Generic.List }
 
-and [<CLIMutable>] NodeTransitor<'input,'dest when 'input:comparison> = { Input:List<'input>; Dest:'dest }
+and [<CLIMutable>] TransitorRecord<'input,'dest when 'input:comparison> = { Input:System.Collections.Generic.List<'input>; Dest:'dest }
 with 
-    static member cotr(input:Opset<'input>, dest:'dest) : NodeTransitor<'input,'dest> =
-        let trans = {Input = new List<'input>(); Dest = dest}
+    static member cotr(input:Opset<'input>, dest:'dest) : TransitorRecord<'input,'dest> =
+        let trans = {Input = new System.Collections.Generic.List<'input>(); Dest = dest}
         for v in input.Set do
             trans.Input.Add(v)
         trans

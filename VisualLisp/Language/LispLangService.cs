@@ -19,7 +19,7 @@ namespace Dandan.VisualLisp.Language
 
         public override string GetFormatFilterList()
         {
-            return "Lisp File (*.lsp) *.lss";
+            return "Lisp File (*.ls) *.lss";
         }
 
         public override LanguagePreferences GetLanguagePreferences()
@@ -31,22 +31,6 @@ namespace Dandan.VisualLisp.Language
                 if (preferences != null)
                 {
                     preferences.Init();
-
-                    //preferences.EnableCodeSense = true;
-                    //preferences.EnableMatchBraces = true;
-                    //preferences.EnableCommenting = true;
-                    //preferences.EnableShowMatchingBrace = true;
-                    //preferences.EnableMatchBracesAtCaret = true;
-                    //preferences.HighlightMatchingBraceFlags = _HighlightMatchingBraceFlags.HMB_USERECTANGLEBRACES;
-                    //preferences.LineNumbers = true;
-                    //preferences.MaxErrorMessages = 100;
-                    //preferences.AutoOutlining = false;
-                    //preferences.MaxRegionTime = 2000;
-                    //preferences.ShowNavigationBar = true;
-
-                    //preferences.AutoListMembers = true;
-                    //preferences.EnableQuickInfo = true;
-                    //preferences.ParameterInformation = true;
                 }
             }
 
@@ -97,9 +81,7 @@ namespace Dandan.VisualLisp.Language
         {
             this.buffer = buffer;
         }
-
-
-
+        
         public void SetSource(string source, int offset)
         {
             this.source = ListModule.OfArray(source.Substring(offset).ToCharArray());

@@ -27,10 +27,10 @@ type Regex(name:string, dfa:DFA) =
         let despec c = char(int c - 128)
         let (|Special|_|) c = if c > '\128' then Some(despec c) else None
 
-        let titalset = ['\009';'\010';'\013'] @ ['\032'..'\126']
+        let totalset = ['\009';'\010';'\013'] @ ['\032'..'\126']
     
         let diffset (set:Opset<char>) = 
-            Opset [ for c in titalset do
+            Opset [ for c in totalset do
                         if not (set.Contains c) then
                             yield c]
 
@@ -155,10 +155,10 @@ type Regex(name:string, dfa:DFA) =
         Regex.FromSerializerableStruct(JavaScriptSerializer().Deserialize<RegexRecord>(json))
 
     member me.ToSerializerableStruct() =
-        { Name = name; Dfa = dfa.ToSerializerableStruct()}
+        { Name = name; DfaRecord = dfa.ToSerializerableStruct()}
 
     static member FromSerializerableStruct(data:RegexRecord) =
-        Regex(data.Name, DFA.FromSerializerableStruct(data.Dfa))
+        Regex(data.Name, DFA.FromSerializerableStruct(data.DfaRecord))
 
 
-and [<CLIMutable>] RegexRecord = { Name:string; Dfa:Dfa}
+and [<CLIMutable>] RegexRecord = { Name:string; DfaRecord:DfaRecord}

@@ -24,7 +24,7 @@ namespace Dandan.VisualLisp
         DefaultToInsertSpaces = true,
         EnableCommenting = true,
         MatchBraces = true,
-        MatchBracesAtCaret = true, 
+        MatchBracesAtCaret = true,
         ShowCompletion = true,
         ShowMatchingBrace = true,
         QuickInfo = true,
@@ -104,10 +104,10 @@ namespace Dandan.VisualLisp
         public int FDoIdle(uint grfidlef)
         {
             bool bPeriodic = (grfidlef & (uint)_OLEIDLEF.oleidlefPeriodic) != 0;
-            // Use typeof(TestLanguageService) because we need to
+            // Use typeof(LispLangService) because we need to
             // reference the GUID for our language service.
-            LanguageService service = GetService(typeof(LispLangService))
-                                      as LanguageService;
+            LanguageService service = GetService(typeof(LispLangService)) as LanguageService;
+
             if (service != null)
             {
                 service.OnIdle(bPeriodic);
@@ -115,9 +115,7 @@ namespace Dandan.VisualLisp
             return 0;
         }
 
-        public int FContinueMessageLoop(uint uReason,
-                                        IntPtr pvLoopData,
-                                        MSG[] pMsgPeeked)
+        public int FContinueMessageLoop(uint uReason, IntPtr pvLoopData, MSG[] pMsgPeeked)
         {
             return 1;
         }
@@ -132,10 +130,7 @@ namespace Dandan.VisualLisp
             return 1;
         }
 
-        public int FReserved1(uint dwReserved,
-                              uint message,
-                              IntPtr wParam,
-                              IntPtr lParam)
+        public int FReserved1(uint dwReserved, uint message, IntPtr wParam, IntPtr lParam)
         {
             return 1;
         }
@@ -145,12 +140,8 @@ namespace Dandan.VisualLisp
             return IntPtr.Zero;
         }
 
-        public void OnActivationChange(IOleComponent pic,
-                                       int fSameComponent,
-                                       OLECRINFO[] pcrinfo,
-                                       int fHostIsActivating,
-                                       OLECHOSTINFO[] pchostinfo,
-                                       uint dwReserved)
+        public void OnActivationChange(IOleComponent pic, int fSameComponent, OLECRINFO[] pcrinfo,
+            int fHostIsActivating, OLECHOSTINFO[] pchostinfo, uint dwReserved)
         {
         }
 

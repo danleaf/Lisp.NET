@@ -1,13 +1,12 @@
 ﻿namespace Lexer
 
 open System
-open System.Collections.Generic
 open Common
 
 //NFA节点，创建节点时会将节点信息加入NfaStatic
 type NfaNode() as this = 
     static let mutable nfaNodeIdx = 0
-    static let mutable nodeMap = new Dictionary<int, NfaNode>()
+    static let mutable nodeMap = new System.Collections.Generic.Dictionary<int, NfaNode>()
 
     let mutable ends = false
     let mutable directTo:NfaNode Set = Set[]

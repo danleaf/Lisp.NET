@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lisp.NET", "Lisp.NET\Lisp.NET.csproj", "{EC0F7276-EC72-4DB4-AE4B-667D0B81B59E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lisp.Net", "Lisp.NET\Lisp.Net.csproj", "{EC0F7276-EC72-4DB4-AE4B-667D0B81B59E}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lexer", "Lexer\Lexer.fsproj", "{59A9D7F0-6E2A-487C-BE67-D0C84D4CB81F}"
 EndProject
@@ -18,6 +18,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Project", "MPF\Microsoft.VisualStudio.Project.csproj", "{CACB60A9-1E76-4F92-8831-B134A658C695}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualLisp", "VisualLisp\VisualLisp.csproj", "{C8C10214-FCC0-4F7A-8DE7-5B3D0D1C9DB3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FSharpExtension", "FSharpExtension\FSharpExtension.csproj", "{716DD3CE-83B2-4CA9-B651-E848E20EE605}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Grammar", "Grammar\Grammar.fsproj", "{458A59E3-B216-40E6-A4C7-B4165F5C1571}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +57,14 @@ Global
 		{C8C10214-FCC0-4F7A-8DE7-5B3D0D1C9DB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8C10214-FCC0-4F7A-8DE7-5B3D0D1C9DB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8C10214-FCC0-4F7A-8DE7-5B3D0D1C9DB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{716DD3CE-83B2-4CA9-B651-E848E20EE605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{716DD3CE-83B2-4CA9-B651-E848E20EE605}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{716DD3CE-83B2-4CA9-B651-E848E20EE605}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{716DD3CE-83B2-4CA9-B651-E848E20EE605}.Release|Any CPU.Build.0 = Release|Any CPU
+		{458A59E3-B216-40E6-A4C7-B4165F5C1571}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{458A59E3-B216-40E6-A4C7-B4165F5C1571}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{458A59E3-B216-40E6-A4C7-B4165F5C1571}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{458A59E3-B216-40E6-A4C7-B4165F5C1571}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
