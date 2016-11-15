@@ -25,7 +25,7 @@ namespace mylisp
                                 new Regex("line", @"\r?\n"),
                                 new Regex("open", @"[\(\[\{]"),
                                 new Regex("close", @"[\)\]\}]"),
-                                new Regex("string", @"""([^""\\]*|\\.)*"""),
+                                new Regex("string", @"""([^""\\]|\\.)*"""),
                                 new Regex("number",@"[0-9]+(\.[0-9]+)?"),
                                 new Regex("identifier",@"[^\n\t \r\)\(\]\[\}\{:.,;'""`]+"),
                                 new Regex("point",@"\."),
@@ -35,7 +35,7 @@ namespace mylisp
             (ns Simple)""sdfsf
 sdfsfd""
             (def *abs* 10)
-            (println ""%n %s"" 1.90 ""Hello World"")");
+            (println ""%n\"" %s"" 1.90 ""Hello World"")");
             foreach (var r in result)
                 Console.WriteLine("{0}: {1}", r.Item1, r.Item2);
             Console.ReadKey();
