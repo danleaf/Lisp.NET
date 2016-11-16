@@ -61,6 +61,7 @@
     <None Include="Key.snk" />
     <Compile Include="Common.fs" />
     <Compile Include="NFA.fs" />
+    <Compile Include="Transition.fs" />
     <Compile Include="TFA.fs" />
     <Compile Include="DFA.fs" />
     <Compile Include="Regex.fs" />

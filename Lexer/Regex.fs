@@ -140,7 +140,7 @@ type Regex(name:string, dfa:DFA) =
             | _ -> concat_nfa nfa curnfa |> regex rest
 
         let nfa,_ = regex (s2l regexStr) EmptyNfa
-        Regex(name, DFA.FromNfa(nfa))        
+        Regex(name, DFA(nfa))        
         
     member me.DFA with get() = dfa
     member me.Name with get() = name
@@ -148,17 +148,17 @@ type Regex(name:string, dfa:DFA) =
     member me.Match(input:string) = dfa.Match(input)
     member me.Match(input:char list) = dfa.Match(input)
 
-    member me.ToJson() =
-        JavaScriptSerializer().Serialize(me.ToSerializerableStruct())
-
-    static member FromJson(json:string) = 
-        Regex.FromSerializerableStruct(JavaScriptSerializer().Deserialize<RegexRecord>(json))
-
-    member me.ToSerializerableStruct() =
-        { Name = name; DfaRecord = dfa.ToSerializerableStruct()}
-
-    static member FromSerializerableStruct(data:RegexRecord) =
-        Regex(data.Name, DFA.FromSerializerableStruct(data.DfaRecord))
+//    member me.ToJson() =
+//        JavaScriptSerializer().Serialize(me.ToSerializerableStruct())
+//
+//    static member FromJson(json:string) = 
+//        Regex.FromSerializerableStruct(JavaScriptSerializer().Deserialize<RegexRecord>(json))
+//
+//    member me.ToSerializerableStruct() =
+//        { Name = name; DfaRecord = dfa.ToSerializerableStruct()}
+//
+//    static member FromSerializerableStruct(data:RegexRecord) =
+//        Regex(data.Name, DFA.FromSerializerableStruct(data.DfaRecord))
 
 
 and [<CLIMutable>] RegexRecord = { Name:string; DfaRecord:DfaRecord}

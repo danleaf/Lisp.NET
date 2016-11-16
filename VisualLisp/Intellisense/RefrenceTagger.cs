@@ -94,12 +94,12 @@ namespace Dandan.VisualLisp.Intellisense
             // Note that we'll yield back the same word again in the wordspans collection; 
             // the duplication here is expected. 
             if (spans.OverlapsWith(new NormalizedSnapshotSpanCollection(currentWord)))
-                yield return new TagSpan<TextMarkerTag>(currentWord, new TextMarkerTag("dandan.highlight"));
+                yield return new TagSpan<TextMarkerTag>(currentWord, new TextMarkerTag("blue"));
 
             // Second, yield all the other words in the file 
             foreach (SnapshotSpan span in NormalizedSnapshotSpanCollection.Overlap(spans, wordSpans))
             {
-                yield return new TagSpan<TextMarkerTag>(span, new TextMarkerTag("dandan.highlight"));
+                yield return new TagSpan<TextMarkerTag>(span, new TextMarkerTag("blue"));
             }
         }
 

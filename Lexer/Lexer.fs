@@ -50,30 +50,30 @@ type Lexer(regexs:Regex list) =
     member me.GetNextToken(input:char list) = 
             me.GetNextToken(input, regexs)
         
-    member me.ToJson() =
-        JavaScriptSerializer().Serialize(me.ToSerializerableStruct())
-
-    static member FromJson(json:string) = 
-        Lexer.FromSerializerableStruct(JavaScriptSerializer().Deserialize<LexerRecord>(json))
-
-    member me.ToSerializerableStruct() =
-        let data = { Regexes = new System.Collections.Generic.List<RegexRecord>() }
-        for regex in regexs do
-            data.Regexes.Add(regex.ToSerializerableStruct())
-        data
-
-    static member FromSerializerableStruct(data:LexerRecord) =
-        Lexer [for regex in data.Regexes do yield Regex.FromSerializerableStruct(regex)]
-
-    member me.SaveToFile(path:string) = 
-        use fs = new FileStream(path, FileMode.Create)
-        use writer = new StreamWriter(fs)
-        writer.Write(me.ToJson())
-
-    static member LoadFromFile(path:string) = 
-        use fs = new FileStream(path, FileMode.Open)
-        use reader = new StreamReader(fs)
-        Lexer.FromJson(reader.ReadToEnd())
+//    member me.ToJson() =
+//        JavaScriptSerializer().Serialize(me.ToSerializerableStruct())
+//
+//    static member FromJson(json:string) = 
+//        Lexer.FromSerializerableStruct(JavaScriptSerializer().Deserialize<LexerRecord>(json))
+//
+//    member me.ToSerializerableStruct() =
+//        let data = { Regexes = new System.Collections.Generic.List<RegexRecord>() }
+//        for regex in regexs do
+//            data.Regexes.Add(regex.ToSerializerableStruct())
+//        data
+//
+//    static member FromSerializerableStruct(data:LexerRecord) =
+//        Lexer [for regex in data.Regexes do yield Regex.FromSerializerableStruct(regex)]
+//
+//    member me.SaveToFile(path:string) = 
+//        use fs = new FileStream(path, FileMode.Create)
+//        use writer = new StreamWriter(fs)
+//        writer.Write(me.ToJson())
+//
+//    static member LoadFromFile(path:string) = 
+//        use fs = new FileStream(path, FileMode.Open)
+//        use reader = new StreamReader(fs)
+//        Lexer.FromJson(reader.ReadToEnd())
 
 
 and [<CLIMutable>] LexerRecord = { Regexes:RegexRecord System.Collections.Generic.List }

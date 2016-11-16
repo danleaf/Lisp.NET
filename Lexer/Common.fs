@@ -107,7 +107,19 @@ module Common =
             ll.Add(v)
         ll
         
-    let CList2FList (l:System.Collections.Generic.List<'a>) : 'a list = 
+    let CList2FList (l:System.Collections.Generic.List<_>) = 
         [for v in l do yield v]
+
+    let dict2map (dict:System.Collections.Generic.Dictionary<_,_>) =
+        let mutable map = Map[]
+        for v in dict do
+            map <- map.Add(v.Key, v.Value)
+        map
+
+    let map2dict (map:Map<_,_>) =
+        let dict = new System.Collections.Generic.Dictionary<_,_>()
+        for v in map do
+            dict.Add(v.Key, v.Value)
+        dict
             
 

@@ -89,8 +89,8 @@ namespace Dandan.VisualLisp.Intellisense
                            select n.Key;
                 if (BraceMatchingTagger.FindMatchingOpenChar(lastChar, (char)open.ElementAt<char>(0), lastText, View.TextViewLines.Count, out pairSpan) == true)
                 {
-                    yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(lastChar, 1), new TextMarkerTag("dandan.highlight"));
-                    yield return new TagSpan<TextMarkerTag>(pairSpan, new TextMarkerTag("dandan.highlight"));
+                    yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(lastChar, 1), new TextMarkerTag("blue"));
+                    yield return new TagSpan<TextMarkerTag>(pairSpan, new TextMarkerTag("blue"));
                 }
             }
             else if (CurrentChar.Value.Position < CurrentChar.Value.Snapshot.Length)
@@ -109,8 +109,8 @@ namespace Dandan.VisualLisp.Intellisense
                     m_braceList.TryGetValue(currentText, out closeChar);
                     if (BraceMatchingTagger.FindMatchingCloseChar(currentChar, currentText, closeChar, View.TextViewLines.Count, out pairSpan) == true)
                     {
-                        yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(currentChar, 1), new TextMarkerTag("dandan.highlight"));
-                        yield return new TagSpan<TextMarkerTag>(pairSpan, new TextMarkerTag("dandan.highlight"));
+                        yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(currentChar, 1), new TextMarkerTag("blue"));
+                        yield return new TagSpan<TextMarkerTag>(pairSpan, new TextMarkerTag("blue"));
                     }
                 }
             }

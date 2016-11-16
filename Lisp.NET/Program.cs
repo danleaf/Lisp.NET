@@ -10,9 +10,9 @@ using System.Web.Script.Serialization;
 using Microsoft.FSharp.Collections;
 using System.Xml;
 using System.IO;
-using Lexer;
 
 using intlist = Microsoft.FSharp.Collections.FSharpList<int>;
+using Lexer;
 
 namespace mylisp
 {
@@ -21,24 +21,33 @@ namespace mylisp
         public static void Main()
         {
             var lexer = new Lexer.Lexer(new List<Regex>(){
-                                new Regex("blank", @"[\t ]+"),
-                                new Regex("line", @"\r?\n"),
+                                new Regex("blank", @"[ \t\r\n]+"),
+                                new Regex("comment", @";[^\r\n]*"),
+                                new Regex(":",@":"),
+                                new Regex(".",@"\."),
+                                new Regex("'",@"'"),
+                                new Regex("`",@"`"),
+                                new Regex("#",@"#"),
                                 new Regex("open", @"[\(\[\{]"),
                                 new Regex("close", @"[\)\]\}]"),
                                 new Regex("string", @"""([^""\\]|\\.)*"""),
                                 new Regex("number",@"[0-9]+(\.[0-9]+)?"),
                                 new Regex("identifier",@"[^\n\t \r\)\(\]\[\}\{:.,;'""`]+"),
-                                new Regex("point",@"\."),
                                 new Regex("Error",@".")});
 
-            var result = lexer.GetTokenList(@"
-            (ns Simple)""sdfsf
-sdfsfd""
-            (def *abs* 10)
-            (println ""%n\"" %s"" 1.90 ""Hello World"")");
+            FileStream fs = new FileStream(@"E:\TDDownload\JabberwockyBinary\acl.lisp", FileMode.Open);
+
+            var result = lexer.GetTokenList(new StreamReader(fs).ReadToEnd());
             foreach (var r in result)
-                Console.WriteLine("{0}: {1}", r.Item1, r.Item2);
-            Console.ReadKey();
+            {
+                if (r.Item1 != "blank")
+                Console.WriteLine("{0} -> {1}", r.Item1, ConvertTo(r.Item2));
+            }
+        }
+
+        private static string ConvertTo(string str)
+        {
+            return str.Replace("\r","\\r").Replace("\n","\\n");
         }
 
         public static void CreateDynamicType()
@@ -202,7 +211,7 @@ sdfsfd""
 
         }
 
-        public static string DafToXml(DfaRecord dfa)
+        /*public static string DafToXml(DfaRecord dfa)
         {
             XmlDocument doc = new XmlDocument();
             XmlElement root = doc.CreateElement("DFA");
@@ -252,6 +261,6 @@ sdfsfd""
             }
             doc.Save("D:\\abc.xml");
             return doc.InnerXml;
-        }
+        }*/
     }
 }

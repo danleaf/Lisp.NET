@@ -65,16 +65,18 @@ namespace Dandan.VisualLisp.Language
 
         Lexer.Lexer lexer = new Lexer.Lexer(
                             new List<Regex>(){
-                                new Regex("delimiter", @"[\[\]{}\(\)]"),
-                                new Regex("keyword", @"ns|class|defn|filed"),
-                                new Regex("string", @"""([^""\r\n\\]*|\\.)*"""),
-                                new Regex("errstring", @"""([^""\r\n\\]*|\\.)*"),
-                                new Regex ("sepor",@";"),
-                                new Regex("line", @"\r?\n"),
-                                new Regex("blank", @"[ \t]+"),
-                                new Regex("identifier",@"[a-zA-Z_][\w]*"),
+                                new Regex("blank", @"[ \t\r\n]+"),
+                                new Regex("comment", @";[^\r\n]*"),
+                                new Regex(".",@"\."),
+                                new Regex("'",@"'"),
+                                new Regex("`",@"`"),
+                                new Regex("#",@"#"),
+                                new Regex("open", @"[\(\[\{]"),
+                                new Regex("close", @"[\)\]\}]"),
+                                new Regex("string", @"""([^""\\]|\\.)*"""),
                                 new Regex("number",@"[0-9]+(\.[0-9]+)?"),
-                                new Regex("point",@"\."),
+                                new Regex("identifier",@"[^\n\t \r\)\(\]\[\}\{:.,;'""`]+"),
+                                new Regex("keyword",@":[\w\-]+"),
                                 new Regex("Error",@".")});
 
         public LispScanner(IVsTextBuffer buffer)

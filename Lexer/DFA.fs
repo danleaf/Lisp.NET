@@ -3,19 +3,74 @@
 open System.Web.Script.Serialization
 open Common
 
-type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
-
+type DfaTmpNode(id:int, isEnd:bool, transitors:Transitor<char, int> list) = 
     let id = id
     let isEnd = isEnd
-    let mutable transitors = transitors   
+    let transitors = transitors  
 
-    static member FromNfa(nfa:NFA) = DFA.FromTfa(TFA(nfa))
-    static member FromTfa(tfa:TFA) = DFA.FromTfa(tfa, new System.Collections.Generic.Dictionary<int, DFA>())
+    new (tfa:TFA) =
+        DfaTmpNode(tfa.ID, tfa.IsEnd, 
+            [for trans in tfa.Transitors do
+                yield Transitor(trans.Input, trans.Dest.ID)])
+
+    new (record:DfaRecordNode) =
+        DfaTmpNode(record.ID, record.IsEnd, 
+            [for trans in record.Transitors do
+                yield Transitor(Opset (CList2FList trans.Input), trans.Dest)])
+        
+
+    member me.ID with get() = id
+    member me.IsEnd with get() = isEnd
+    member me.Transitors with get() = transitors
+
+and DfaTmp(tfa:TFA) =
+    let rec cotr_map (tfa:TFA) (map:Map<int,DfaTmpNode>) =
+        if map.ContainsKey(tfa.ID) then
+            map
+        else
+            let rec cotr_set2 (tfas:Transitor<char,TFA> list) (map:Map<int,DfaTmpNode>) =
+                match tfas with
+                | [] -> map
+                | tfa::rest -> cotr_map tfa.Dest map |> cotr_set2 rest
+            let dfaNode = DfaTmpNode(tfa)
+            map.Add(dfaNode.ID, dfaNode) |> cotr_set2 tfa.Transitors
+
+    let map = Map[] |> cotr_map tfa 
+    let startId = tfa.ID
+    let start = map.[tfa.ID]
+
+    member me.Map = map
+    member me.Start = start
+    member me.StartId = startId
+
+and DFA(id:int, tmpNodeMap:Map<int,DfaTmpNode>, map:System.Collections.Generic.Dictionary<int, DFA>) as this =
+    let id = id
+    do map.Add(id, this)
+
+    let tmpNode = tmpNodeMap.[id]
+    let isEnd = tmpNode.IsEnd
+
+    let transitors = 
+        [for trans in tmpNode.Transitors do
+            yield Transitor(trans.Input, 
+                if map.ContainsKey(trans.Dest) then 
+                    map.[trans.Dest]
+                else
+                    DFA(trans.Dest, tmpNodeMap, map))]
+
+    new (id:int, tmpNodeMap:Map<int,DfaTmpNode>) =
+        DFA(id, tmpNodeMap, new System.Collections.Generic.Dictionary<int, DFA>())
+
+    new (tfa:TFA) = 
+        let tmpDfa = DfaTmp(tfa)
+        DFA(tmpDfa.StartId, tmpDfa.Map)
+
+    new (nfa:NFA) = DFA(TFA(nfa))
         
     member me.Transitors with get() = transitors
     member me.ID with get() = id
     member me.IsEnd with get() = isEnd
-    member me.Transit c = 
+    member me.Transit(c) = 
         let mutable hasnext = false
         let mutable dest = me
         for trans in transitors do
@@ -25,64 +80,19 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
         hasnext, dest
 
     member me.Match(input:string) = 
-        let len, _ = DFA.match' 0 (s2l input) me true
+        let len, _ = DFA.Match(0, s2l input, me, true)
         { Value = input.Substring(0,len); Length = len }
 
     member me.Match(input:char list) = 
-        DFA.match' 0 input me true
-
-    member me.ToJson() =
-        let data = me.ToSerializerableStruct()
-        JavaScriptSerializer().Serialize(data)
-
-    static member FromJson(json:string) =
-        let data = JavaScriptSerializer().Deserialize<DfaRecord>(json)
-        DFA.FromSerializerableStruct(data)
-
-    member me.ToSerializerableStruct() =
-        let set = new System.Collections.Generic.HashSet<int>()    
-        let nodes = new System.Collections.Generic.List<DfaRecordNode>()
-        me.ToDfaRecordList(set, nodes)
-        { NodeList = nodes; StartID = me.ID }
-
-    static member FromSerializerableStruct(dfa:DfaRecord) =
-        let map = new System.Collections.Generic.Dictionary<int, DfaRecordNode>();
-        for node in dfa.NodeList do
-            map.Add(node.ID, node)
-        DFA.FromDfaRecordNode(dfa.StartID, map, new System.Collections.Generic.Dictionary<int, DFA>())
+        DFA.Match(0, input, me, true)            
     
-    static member private FromDfaRecordNode(nodeID,nodeMap:System.Collections.Generic.Dictionary<int, DfaRecordNode>,dfaMap:System.Collections.Generic.Dictionary<int, DFA>) = 
-            
-        let node = nodeMap.[nodeID]
-        if dfaMap.ContainsKey(node.ID) then
-            dfaMap.[node.ID] 
-        else    
-            let dfa = DFA(node.ID, node.IsEnd, [])
-            dfaMap.Add(dfa.ID, dfa)
-            dfa.SetTransitors(
-                [for v in node.Transitors do
-                    yield Transitor.cotr(v.Input, DFA.FromDfaRecordNode(v.Dest, nodeMap, dfaMap))])
-            dfa
-        
-    static member private FromTfa(tfa:TFA, map:System.Collections.Generic.Dictionary<int, DFA>) = 
-        if map.ContainsKey(tfa.ID) then
-            map.[tfa.ID] 
-        else    
-            let dfa = DFA(tfa.ID, tfa.IsEnd, [])
-            map.Add(dfa.ID, dfa)
-            dfa.SetTransitors(
-                [for trans in tfa.Transitors do
-                    let set,dest = trans.Input,trans.Dest
-                    yield Transitor(set, DFA.FromTfa(dest, map))])
-            dfa
-    
-    static member private match' len inputlist (dfa:DFA) long : int * char list =
+    static member private Match(len, inputlist, dfa:DFA, long): int * char list =
         match inputlist with
         | input::tail  ->
             if long then
                 let hasnext, nextdfa = dfa.Transit input
                 if hasnext then
-                    DFA.match' (len+1) tail nextdfa long
+                    DFA.Match(len+1, tail, nextdfa, long)
                 else
                     if dfa.IsEnd then
                         len, inputlist
@@ -94,7 +104,7 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
                 else
                     let hasnext, nextdfa = dfa.Transit input
                     if hasnext then
-                        DFA.match' (len+1) tail nextdfa long
+                        DFA.Match(len+1, tail, nextdfa, long)
                     else
                         if dfa.IsEnd then
                             len, inputlist
@@ -123,9 +133,27 @@ type DFA(id:int, isEnd:bool, transitors:Transitor<char, DFA> list) =
             let node = { ID = me.ID; IsEnd =me.IsEnd; Transitors = transList }
             set.Add(node.ID) |> ignore
             result.Add(node)
-            DFA.ToDfaRecordList(set, me.Transitors, result)            
+            DFA.ToDfaRecordList(set, me.Transitors, result)        
             
-    member private me.SetTransitors(ts:Transitor<char, DFA> list) = transitors <- ts
+    member me.ToJson() =
+        let data = me.ToSerializerableStruct()
+        JavaScriptSerializer().Serialize(data)
+
+    static member FromJson(json:string) =
+        let data = JavaScriptSerializer().Deserialize<DfaRecord>(json)
+        DFA.FromSerializerableStruct(data)
+
+    member me.ToSerializerableStruct() =
+        let set = new System.Collections.Generic.HashSet<int>()    
+        let nodes = new System.Collections.Generic.List<DfaRecordNode>()
+        me.ToDfaRecordList(set, nodes)
+        { NodeList = nodes; StartID = me.ID }
+
+    static member FromSerializerableStruct(dfa:DfaRecord) =
+        let dict = new System.Collections.Generic.Dictionary<int, DfaTmpNode>();
+        for node in dfa.NodeList do
+            dict.Add(node.ID, DfaTmpNode(node))
+        DFA(dfa.StartID, dict2map dict, new System.Collections.Generic.Dictionary<int, DFA>())  
 
 and MatchResult = { Value:string; Length:int }
 
