@@ -67,7 +67,7 @@ type Lexer(regexs:Regex list) =
                 "string", @"""([^\r\n""\\]|\\.)*""";
                 "number",@"[0-9]+(\.[0-9]+)?";
                 "keyword",@":[\w\-]+";
-                "symble",@"[^\n\t \r\)\(\]\[\}\{.,;'""`]+";
+                "symbol",@"[^\n\t \r\)\(\]\[\}\{.,;'""`]+";
                 "error",@"."]
         
 //    member me.ToJson() =

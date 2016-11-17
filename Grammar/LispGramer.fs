@@ -2,7 +2,7 @@
 
 (* Lexer of Lisp.Net
 
-SYMBLE  :   /[^\n\t \r\)\(\]\[\}\{.,;'""`]+/
+SYMBOL  :   /[^\n\t \r\)\(\]\[\}\{.,;'""`]+/
 NUMBER  :   /[0-9]+(\.[0-9]+)?/
 STRING  :   /""([^""\\]|\\.)*""/
 KEYWORD :   /:[\w\-]+/
@@ -18,7 +18,7 @@ Gramer of Lisp.Net
 atom:              SYMBLE | NUMBER | STRING | KEYWORD
 member:            atom | atom member
 list:              OPEN member CLOSE | OPEN CLOSE
-symble_bind_stmt:  OPEN LET name value CLOSE
+symbol_bind_stmt:  OPEN LET name value CLOSE
 var_def_stmt:      OPEN DEF name value CLOSE
 function:          OPEN FN params body CLOSE
 name:              list
@@ -29,7 +29,7 @@ body:              list
 *)
 
 type TokenType = 
-    | SYMBLE        = 0
+    | SYMBOL        = 0
     | NUMBER        = 1
     | STRING        = 2  
     | KEYWORD       = 3 
@@ -51,7 +51,7 @@ type TokenType =
 type Token = { Type:TokenType; Value:string }
 
 type LispGrammar(tokens:Lexer.Toekn list) =
-    let tokenMap = Map[ "symble",TokenType.SYMBLE;
+    let tokenMap = Map[ "symbol",TokenType.SYMBOL;
                         "blank",TokenType.BLANK;
                         "comment",TokenType.COMMENT;
                         "number",TokenType.NUMBER;
