@@ -19,21 +19,24 @@ type Lexer(regexs:Regex list) =
 
     let rec matchall (str:string) result =
         let name,s,len = matchone str regexs
-        let newresult = if len > 0 then result @ [name,s] else result
+        let newresult = if len > 0 then result @ [{ Name = name; Value = s }] else result
         if len > 0 && str.Length > len then
             newresult |> matchall (str.Substring(len)) 
         else
             newresult
             
     new (regexs:Regex System.Collections.Generic.List) = 
-        Lexer [for regex in regexs do yield regex]
+        Lexer(CList2FList regexs)
 
     new (regexstrs:(string*string) list) = 
         Lexer [for name,str in regexstrs do yield Regex(name, str)]
 
     member me.GetTokenList(input:string) = 
+        matchall input []
+
+    member me.GetTokenList2(input:string) = 
         let rs = matchall input []
-        let l = new System.Collections.Generic.List<string*string>()
+        let l = new System.Collections.Generic.List<Toekn>()
         for r in rs do l.Add(r)
         l
 
@@ -49,6 +52,23 @@ type Lexer(regexs:Regex list) =
 
     member me.GetNextToken(input:char list) = 
             me.GetNextToken(input, regexs)
+
+    static member GetLispLexer() = 
+        Lexer[  "blank", @"[ \t\r\n]+";
+                "comment", @";[^\r\n]*";
+                ".",@"\.";
+                "'",@"'";
+                "`",@"`";
+                ",",@",";
+                "@",@"@";
+                "#",@"#";
+                "open", @"[\(\[\{]";
+                "close", @"[\)\]\}]";
+                "string", @"""([^\r\n""\\]|\\.)*""";
+                "number",@"[0-9]+(\.[0-9]+)?";
+                "keyword",@":[\w\-]+";
+                "symble",@"[^\n\t \r\)\(\]\[\}\{.,;'""`]+";
+                "error",@"."]
         
 //    member me.ToJson() =
 //        JavaScriptSerializer().Serialize(me.ToSerializerableStruct())
@@ -78,3 +98,4 @@ type Lexer(regexs:Regex list) =
 
 and [<CLIMutable>] LexerRecord = { Regexes:RegexRecord System.Collections.Generic.List }
 and MatchResult2 = { Token:string; Length:int; Rest:char list }
+and Toekn = { Name:string; Value:string }

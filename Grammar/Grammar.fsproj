@@ -42,7 +42,14 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BNF.fs" />
+    <Compile Include="LispGramer.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lexer\Lexer.fsproj">
+      <Name>Lexer</Name>
+      <Project>{59a9d7f0-6e2a-487c-be67-d0c84d4cb81f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

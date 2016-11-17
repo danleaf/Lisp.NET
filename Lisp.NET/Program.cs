@@ -13,6 +13,7 @@ using System.IO;
 
 using intlist = Microsoft.FSharp.Collections.FSharpList<int>;
 using Lexer;
+using Grammar;
 
 namespace mylisp
 {
@@ -20,28 +21,14 @@ namespace mylisp
     {
         public static void Main()
         {
-            var lexer = new Lexer.Lexer(new List<Regex>(){
-                                new Regex("blank", @"[ \t\r\n]+"),
-                                new Regex("comment", @";[^\r\n]*"),
-                                new Regex(":",@":"),
-                                new Regex(".",@"\."),
-                                new Regex("'",@"'"),
-                                new Regex("`",@"`"),
-                                new Regex("#",@"#"),
-                                new Regex("open", @"[\(\[\{]"),
-                                new Regex("close", @"[\)\]\}]"),
-                                new Regex("string", @"""([^""\\]|\\.)*"""),
-                                new Regex("number",@"[0-9]+(\.[0-9]+)?"),
-                                new Regex("identifier",@"[^\n\t \r\)\(\]\[\}\{:.,;'""`]+"),
-                                new Regex("Error",@".")});
+            var lexer = Lexer.Lexer.GetLispLexer();
 
-            FileStream fs = new FileStream(@"E:\TDDownload\JabberwockyBinary\acl.lisp", FileMode.Open);
+            FileStream fs = new FileStream(@"E:\Projects\Lisp.NET\Simples\LispSimple\Program.ls", FileMode.Open);
 
-            var result = lexer.GetTokenList(new StreamReader(fs).ReadToEnd());
-            foreach (var r in result)
+            var grammar = new LispGrammar(lexer.GetTokenList(new StreamReader(fs).ReadToEnd()));
+            foreach (var r in grammar.GetTokens())
             {
-                if (r.Item1 != "blank")
-                Console.WriteLine("{0} -> {1}", r.Item1, ConvertTo(r.Item2));
+                Console.WriteLine("{0} -> {1}", r.Type.ToString(), ConvertTo(r.Value));
             }
         }
 

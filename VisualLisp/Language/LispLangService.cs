@@ -73,11 +73,11 @@ namespace Dandan.VisualLisp.Language
                                 new Regex("#",@"#"),
                                 new Regex("open", @"[\(\[\{]"),
                                 new Regex("close", @"[\)\]\}]"),
-                                new Regex("string", @"""([^""\\]|\\.)*"""),
+                                new Regex("string", @"""([^\r\n""\\]|\\.)*"""),
                                 new Regex("number",@"[0-9]+(\.[0-9]+)?"),
-                                new Regex("identifier",@"[^\n\t \r\)\(\]\[\}\{:.,;'""`]+"),
                                 new Regex("keyword",@":[\w\-]+"),
-                                new Regex("Error",@".")});
+                                new Regex("symble",@"[^\n\t \r\)\(\]\[\}\{.,;'""`]+"),
+                                new Regex("error",@".")});
 
         public LispScanner(IVsTextBuffer buffer)
         {

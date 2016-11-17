@@ -50,6 +50,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Grammar\Grammar.fsproj">
+      <Project>{458a59e3-b216-40e6-a4c7-b4165f5c1571}</Project>
+      <Name>Grammar</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Lexer\Lexer.fsproj">
       <Project>{59a9d7f0-6e2a-487c-be67-d0c84d4cb81f}</Project>
       <Name>Lexer</Name>
