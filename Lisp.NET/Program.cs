@@ -195,7 +195,6 @@ namespace mylisp
                     null,
                     ptInstance,
                     new object[0]);
-
         }
 
         /*public static string DafToXml(DfaRecord dfa)
